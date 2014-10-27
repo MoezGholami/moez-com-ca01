@@ -2,7 +2,7 @@ grammar Lexer;	//TODO: strings
 
 prog:	token*;
 
-token:	keywords	|identifier	|integer	|operators;
+token:	keywords	|identifier	|integer	|operators	|string;
 
 keywords:	vclass	|velse	|vfi	|vif	|vin	|vinherits	|visvoid	|vlet	|vloop	|vpool
 		|vthen	|vwhile	|vcase	|vesac	|vnew	|vof	|vnot	|vtrue	|vfalse;
@@ -36,6 +36,8 @@ o_identifier:		OID		{System.out.println($OID.text		+" : id");};
 
 operators:		OPP		{System.out.println($OPP.text		+" : "+$OPP.text);};
 
+string:			STR		{System.out.println($STR.text		+" : string");};
+
 KWCLASS:			[cC][lL][aA][sS][sS];
 KWELSE	:		 	[eE][lL][sS][eE];
 KWFI	:		 	[fF][iI];
@@ -61,4 +63,6 @@ OID	:	[a-z][_0-9A-Za-z]* ;
 INT	:	[0-9]+ ;
 WS	:	[ \t\r\n\f\v]+ -> skip;
 
-OPP	:	([=][>])	|([<][=|\-])	|[\[\]\{\}\(\)\.\*\+\-/@~<=;,:];
+OPP	:	([=][>])	|([<][=|\-])	|[\[\]\{\}\(\)\.\*\+\-/@~<>=;,:];
+
+STR	:	'"' ('\"'|.)*?'"';

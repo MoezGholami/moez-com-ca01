@@ -1,8 +1,8 @@
-grammar Lexer;	//TODO: symbols && strings
+grammar Lexer;	//TODO: strings
 
 prog:	token*;
 
-token:	keywords	|identifier	|integer;//	|symbols;
+token:	keywords	|identifier	|integer	|operators;
 
 keywords:	vclass	|velse	|vfi	|vif	|vin	|vinherits	|visvoid	|vlet	|vloop	|vpool
 		|vthen	|vwhile	|vcase	|vesac	|vnew	|vof	|vnot	|vtrue	|vfalse;
@@ -34,7 +34,7 @@ vfalse		:KWFALSE		{System.out.println($KWFALSE.text	+" : keyword");};
 type_identifier:	TID		{System.out.println($TID.text		+" : id");};
 o_identifier:		OID		{System.out.println($OID.text		+" : id");};
 
-//symbols:		SYM		{System.out.println($SYM.text		+" : "+$SYM.text);};
+operators:		OPP		{System.out.println($OPP.text		+" : "+$OPP.text);};
 
 KWCLASS:			[cC][lL][aA][sS][sS];
 KWELSE	:		 	[eE][lL][sS][eE];
@@ -56,9 +56,9 @@ KWNOT	:		 	[nN][oO][tT];
 KWTRUE	:		 	 [t][rR][uU][eE];
 KWFALSE:		 	 [f][aA][lL][sS][eE];
 
-TID	:	[A-Z][\w]* ;
-OID	:	[a-z][\w]* ;
-INT	:	[\d]+ ;
-WS	:	[\s]+ -> skip;
+TID	:	[A-Z][_0-9A-Za-z]* ;
+OID	:	[a-z][_0-9A-Za-z]* ;
+INT	:	[0-9]+ ;
+WS	:	[ \t\r\n\f\v]+ -> skip;
 
-//SYM	:	[
+OPP	:	([=][>])	|([<][=|\-])	|[\[\]\{\}\(\)\.\*\+\-/@~<=;,:];

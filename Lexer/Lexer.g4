@@ -2,7 +2,7 @@ grammar Lexer;	//TODO: strings
 
 prog:	token*;
 
-token:	keywords	|identifier	|integer	|operators	|string;
+token:	keywords	|identifier	|integer	|string	|operators;
 
 keywords:	vclass	|velse	|vfi	|vif	|vin	|vinherits	|visvoid	|vlet	|vloop	|vpool
 		|vthen	|vwhile	|vcase	|vesac	|vnew	|vof	|vnot	|vtrue	|vfalse;

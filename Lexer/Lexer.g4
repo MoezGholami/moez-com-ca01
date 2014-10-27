@@ -1,34 +1,40 @@
-grammar Simple;
+grammar Lexer;	//TODO: symbols && strings
 
-prog:	token+	;
+prog:	token*;
 
-token:	keywords	|integer;
+token:	keywords	|identifier	|integer;//	|symbols;
 
 keywords:	vclass	|velse	|vfi	|vif	|vin	|vinherits	|visvoid	|vlet	|vloop	|vpool
 		|vthen	|vwhile	|vcase	|vesac	|vnew	|vof	|vnot	|vtrue	|vfalse;
 
 integer:	INT		{System.out.println($INT.text+":integer");};
 
-vclass		:KWCLASS		{System.out.println($KWCLASS.text	+":keyword");};
-velse		:KWELSE			{System.out.println($KWELSE.text	+":keyword");};
-vfi		:KWFI			{System.out.println($KWFI.text		+":keyword");};
-vif		:KWIF			{System.out.println($KWIF.text		+":keyword");};
-vin		:KWIN			{System.out.println($KWIN.text		+":keyword");};
-vinherits	:KWINHERITS		{System.out.println($KWINHERITS.text	+":keyword");};
-visvoid		:KWISVOID		{System.out.println($KWISVOID.text	+":keyword");};
-vlet		:KWLET			{System.out.println($KWLET.text		+":keyword");};
-vloop		:KWLOOP			{System.out.println($KWLOOP.text	+":keyword");};
-vpool		:KWPOOL			{System.out.println($KWPOOL.text	+":keyword");};
-vthen		:KWTHEN			{System.out.println($KWTHEN.text	+":keyword");};
-vwhile		:KWWHILE		{System.out.println($KWWHILE.text	+":keyword");};
-vcase		:KWCASE			{System.out.println($KWCASE.text	+":keyword");};
-vesac		:KWESAC			{System.out.println($KWESAC.text	+":keyword");};
-vnew		:KWNEW			{System.out.println($KWNEW.text		+":keyword");};
-vof		:KWOF			{System.out.println($KWOF.text		+":keyword");};
-vnot		:KWNOT			{System.out.println($KWNOT.text		+":keyword");};
-vtrue		:KWTRUE			{System.out.println($KWTRUE.text	+":keyword");};
-vfalse		:KWFALSE		{System.out.println($KWFALSE.text	+":keyword");};
+identifier:	type_identifier	|o_identifier;
 
+vclass		:KWCLASS		{System.out.println($KWCLASS.text	+" : keyword");};
+velse		:KWELSE			{System.out.println($KWELSE.text	+" : keyword");};
+vfi		:KWFI			{System.out.println($KWFI.text		+" : keyword");};
+vif		:KWIF			{System.out.println($KWIF.text		+" : keyword");};
+vin		:KWIN			{System.out.println($KWIN.text		+" : keyword");};
+vinherits	:KWINHERITS		{System.out.println($KWINHERITS.text	+" : keyword");};
+visvoid		:KWISVOID		{System.out.println($KWISVOID.text	+" : keyword");};
+vlet		:KWLET			{System.out.println($KWLET.text		+" : keyword");};
+vloop		:KWLOOP			{System.out.println($KWLOOP.text	+" : keyword");};
+vpool		:KWPOOL			{System.out.println($KWPOOL.text	+" : keyword");};
+vthen		:KWTHEN			{System.out.println($KWTHEN.text	+" : keyword");};
+vwhile		:KWWHILE		{System.out.println($KWWHILE.text	+" : keyword");};
+vcase		:KWCASE			{System.out.println($KWCASE.text	+" : keyword");};
+vesac		:KWESAC			{System.out.println($KWESAC.text	+" : keyword");};
+vnew		:KWNEW			{System.out.println($KWNEW.text		+" : keyword");};
+vof		:KWOF			{System.out.println($KWOF.text		+" : keyword");};
+vnot		:KWNOT			{System.out.println($KWNOT.text		+" : keyword");};
+vtrue		:KWTRUE			{System.out.println($KWTRUE.text	+" : keyword");};
+vfalse		:KWFALSE		{System.out.println($KWFALSE.text	+" : keyword");};
+
+type_identifier:	TID		{System.out.println($TID.text		+" : id");};
+o_identifier:		OID		{System.out.println($OID.text		+" : id");};
+
+//symbols:		SYM		{System.out.println($SYM.text		+" : "+$SYM.text);};
 
 KWCLASS:			[cC][lL][aA][sS][sS];
 KWELSE	:		 	[eE][lL][sS][eE];
@@ -50,6 +56,9 @@ KWNOT	:		 	[nN][oO][tT];
 KWTRUE	:		 	 [t][rR][uU][eE];
 KWFALSE:		 	 [f][aA][lL][sS][eE];
 
-ID  :   [a-zA-Z_]+ ;
-INT :   [0-9]+ ;
-WS  :   [ \t\r\n]+ -> skip ;
+TID	:	[A-Z][\w]* ;
+OID	:	[a-z][\w]* ;
+INT	:	[\d]+ ;
+WS	:	[\s]+ -> skip;
+
+//SYM	:	[

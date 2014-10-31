@@ -1,6 +1,18 @@
+<<<<<<< HEAD
 -- this is some comment or something
 (* NOT NESTED *)
 
 ALI (*MALI*) ESME*) (*ADAM *)  --YE CHIZZZZZZZZZ
 
 
+=======
+11
+12
+classs
+objj
+TTyp
+"my name is ali"
+"devil's string \" + "
+""
+(){}[].~@*/+-< =;,: <= <- => +>
+>>>>>>> 38b31b59400be181bf3ce200ce1851f43e856185

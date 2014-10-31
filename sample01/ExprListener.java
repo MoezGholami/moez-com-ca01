@@ -8,16 +8,6 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
  */
 public interface ExprListener extends ParseTreeListener {
 	/**
-	 * Enter a parse tree produced by {@link ExprParser#prog}.
-	 * @param ctx the parse tree
-	 */
-	void enterProg(@NotNull ExprParser.ProgContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link ExprParser#prog}.
-	 * @param ctx the parse tree
-	 */
-	void exitProg(@NotNull ExprParser.ProgContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link ExprParser#expr}.
 	 * @param ctx the parse tree
 	 */
@@ -27,4 +17,14 @@ public interface ExprListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitExpr(@NotNull ExprParser.ExprContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link ExprParser#prog}.
+	 * @param ctx the parse tree
+	 */
+	void enterProg(@NotNull ExprParser.ProgContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ExprParser#prog}.
+	 * @param ctx the parse tree
+	 */
+	void exitProg(@NotNull ExprParser.ProgContext ctx);
 }

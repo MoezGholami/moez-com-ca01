@@ -2,7 +2,11 @@ grammar Lexer;	//TODO:
 
 prog:	token*;
 
+<<<<<<< HEAD
 token:	keywords	|identifier	|integer	|operators	|string |comment;
+=======
+token:	keywords	|identifier	|integer	|string	|operators;
+>>>>>>> 38b31b59400be181bf3ce200ce1851f43e856185
 
 keywords:	vclass	|velse	|vfi	|vif	|vin	|vinherits	|visvoid	|vlet	|vloop	|vpool
 		|vthen	|vwhile	|vcase	|vesac	|vnew	|vof	|vnot	|vtrue	|vfalse;

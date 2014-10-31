@@ -1,29 +1,29 @@
 grammar Parser;
 
-program:	(pclass ';')+ ;
+program:	{System.out.println("1");} (pclass ';')+ ;
 
-pclass:		KWCLASS TID (KWINHERITS TID)? '{' (feature';')* '}';
+pclass:		{System.out.println("2");} KWCLASS TID (KWINHERITS TID)? '{' (feature';')* '}';
 
-feature:	OID '('  ( formal (',' formal)* )?  ')' ':' TID '{' expr '}'
-		|OID ':' TID ( '<-' expr )?;
+feature:	{System.out.println("3");} OID '('  ( formal (',' formal)* )?  ')' ':' TID '{' expr '}'
+		|{System.out.println("4");} OID ':' TID ( '<-' expr )?;
 
-formal :	OID ':' TID ;
+formal :	{System.out.println("5");} OID ':' TID ;
 
 expr1	:
-		KWIF expr KWTHEN expr KWELSE expr KWFI
-		|KWWHILE expr KWLOOP expr KWPOOL
-		|KWLET OID ':' TID  ('<-' expr)?  (',' OID ':' TID ( '<-' expr )?)* KWIN expr
-		|KWCASE expr KWOF (OID ':' TID '=>' expr ';' )+	KWESAC
-		|'{' (expr';')+ '}'
-		|'(' expr ')'  
-		|OID '(' (expr (','expr)*)? ')'
-		|OID '<-' expr
-		|KWNEW TID
-		|OID
-		|('+'|'-')?INT
-		|string
-		|KWTRUE
-		|KWFALSE
+		{System.out.println("9");} KWIF expr KWTHEN expr KWELSE expr KWFI 
+		|{System.out.println("10");} KWWHILE expr KWLOOP expr KWPOOL 
+		|{System.out.println("12");} KWLET OID ':' TID  ('<-' expr)?  (',' OID ':' TID ( '<-' expr )?)* KWIN expr 
+		|{System.out.println("13");} KWCASE expr KWOF (OID ':' TID '=>' expr ';' )+	KWESAC 
+		|{System.out.println("11");} '{' (expr';')+ '}' 
+		|{System.out.println("25");} '(' expr ')'  
+		|{System.out.println("8");} OID '(' (expr (','expr)*)? ')' 
+		|{System.out.println("6");} OID '<-' expr  
+		|{System.out.println("14");} KWNEW TID 
+		|{System.out.println("26");} OID 
+		|{System.out.println("27");} ('+'|'-')?INT  
+		|{System.out.println("28");} string 
+		|{System.out.println("29");} KWTRUE  
+		|{System.out.println("30");}  KWFALSE  
 		;
 
 expr2	:
@@ -31,15 +31,15 @@ expr2	:
 		;
 
 expr2p		:
-		('@' TID)? '.' OID '(' ( expr(','expr)*)? ')' expr2p
+		{System.out.println("7");} ('@' TID)? '.' OID '(' ( expr(','expr)*)? ')' expr2p  
 		|
 		;
 
 
 expr3	:
 		expr2
-		|'~' expr3
-		|KWISVOID expr3
+		|{System.out.println("20");} '~' expr3  
+		|{System.out.println("15");} KWISVOID expr3  
 		;
 
 expr4	:
@@ -47,7 +47,7 @@ expr4	:
 		;
 
 expr4p		:
-		('*'|'/') expr3 expr4p
+		{System.out.println("19");} '/' expr3 expr4p | {System.out.println("18");} '*' expr3 expr4p 
 		|
 		;
 
@@ -57,7 +57,7 @@ expr5	:
 		;
 
 expr5p 		:
-		('+'|'-') expr4 expr5p 
+	 	{System.out.println("16");}  '+' expr4 expr5p | {System.out.println("17");} '-' expr4 expr5p
 		|
 		;
 
@@ -67,12 +67,12 @@ expr6	:
 		;
 
 expr6p		:
-		('<'|'<='|'=') expr5 expr6p 
+		{System.out.println("21");} '<' expr5 expr6p | {System.out.println("22");} '<=' expr5 expr6p | {System.out.println("23");} '=' expr5 expr6p 
 		|;
 
 expr	:
 		expr6
-		|KWNOT expr
+		| {System.out.println("24");} KWNOT expr
 		;
 
 comment:	LINECOMMENT	|MULTICOMMENT;	 

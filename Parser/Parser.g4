@@ -1,40 +1,43 @@
-grammar Parser;	//TODO:RIGH Recursives
+grammar Parser;
 
-program:	(pclass)+
+program:	(pclass)+ ;
 
-pclass :	KWCLASS TID (KWINHERITS TID)? '{' (feature';')* '}'
+pclass :	KWCLASS TID (KWINHERITS TID)? '{' (feature';')* '}';
 
 feature:	OID '('  ( formal (',' formal)* )?  ')' ':' TID '{' expr '}'
-		|	OID ':' TID ( '<-' expr )?
-formal :	OID ':' TID
+		|	OID ':' TID ( '<-' expr )?;
+
+formal :	OID ':' TID ;
 
 expr   :
-			OID '<-' expr
-		|	expr ('@' TID)? '.' OID '(' ( expr(','expr)*)? ')'
+	
+			expr ('@' TID)? '.' OID '(' ( expr(','expr)*)? ')' // TODO : Check precedence of @ and dot.
 		|	OID '(' (expr (','expr)*)? ')'
 		|	KWIF expr KWTHEN expr KWELSE expr KWFI
 		|	KWWHILE expr KWLOOP expr KWPOOL
-		|	'{' (expr';')+ '}'
 		|	KWLET OID ':' TID  ('<-' expr)?  (',' OID ':' TID ( '<-' expr )?)* KWIN expr
 		|	KWCASE expr KWOF (OID ':' TID '=>' expr ';' )+	KWESAC
-		|	'(' expr ')'
-		|	KWNEW TID
+
 		|	'~'	expr
 		|	KWISVOID expr
-		|	expr '*' expr
-		| 	expr '/' expr
-		|	expr '+' expr
-		| 	expr '-' expr
-		|	expr '<' expr
-		|	expr '<=' expr
-		|	expr '=' expr
+
+		|	expr ('*'|'/') expr
+		|	expr ('+'|'-') expr
+		|	expr ('<'|'<='|'=') expr
 		|	KWNOT expr
+		|	OID '<-' expr 
+
+		|	KWNEW TID
+
 		|	OID
 		|	INT
 		|	STR
 		|	KWTRUE
-		|	KWFALSE ;	
-
+		|	KWFALSE 	
+		|	'{' (expr';')+ '}'
+		|	'(' expr ')'  
+		
+			 ;
 		
 
 

@@ -9,32 +9,70 @@ feature:	OID '('  ( formal (',' formal)* )?  ')' ':' TID '{' expr '}'
 
 formal :	OID ':' TID ;
 
-expr   :
-		expr ('@' TID)? '.' OID '(' ( expr(','expr)*)? ')' // TODO : Check precedence of @ and dot.
-		|OID '(' (expr (','expr)*)? ')'
-		|KWIF expr KWTHEN expr KWELSE expr KWFI
+expr1	:
+		KWIF expr KWTHEN expr KWELSE expr KWFI
 		|KWWHILE expr KWLOOP expr KWPOOL
 		|KWLET OID ':' TID  ('<-' expr)?  (',' OID ':' TID ( '<-' expr )?)* KWIN expr
 		|KWCASE expr KWOF (OID ':' TID '=>' expr ';' )+	KWESAC
-
-		|'~'	expr
-		|KWISVOID expr
-
-		|expr ('*'|'/') expr
-		|expr ('+'|'-') expr
-		|expr ('<'|'<='|'=') expr
-		|KWNOT expr
-		|OID '<-' expr 
-
+		|'{' (expr';')+ '}'
+		|'(' expr ')'  
+		|OID '(' (expr (','expr)*)? ')'
+		|OID '<-' expr
 		|KWNEW TID
-
 		|OID
 		|('+'|'-')?INT
 		|string
 		|KWTRUE
-		|KWFALSE 	
-		|'{' (expr';')+ '}'
-		|'(' expr ')'  
+		|KWFALSE
+		;
+
+expr2	:
+		expr1 expr2p
+		;
+
+expr2p		:
+		('@' TID)? '.' OID '(' ( expr(','expr)*)? ')' expr2p
+		|
+		;
+
+
+expr3	:
+		expr2
+		|'~' expr3
+		|KWISVOID expr3
+		;
+
+expr4	:
+		expr3 expr4p
+		;
+
+expr4p		:
+		('*'|'/') expr3 expr4p
+		|
+		;
+
+
+expr5	:
+		expr4 expr5p
+		;
+
+expr5p 		:
+		('+'|'-') expr4 expr5p 
+		|
+		;
+
+
+expr6	:
+		expr5 expr6p
+		;
+
+expr6p		:
+		('<'|'<='|'=') expr5 expr6p 
+		|;
+
+expr	:
+		expr6
+		|KWNOT expr
 		;
 
 comment:	LINECOMMENT	|MULTICOMMENT;	 

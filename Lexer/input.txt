@@ -1,9 +1,6 @@
-11
-12
-classs
-objj
-TTyp
-"my name is ali"
-"devil's string \" "
-""
-(){}[].~@*/+-< =;,: <= <- => +>
+-- this is some comment or something
+(* NOT NESTED *)
+
+ALI (*MALI*) ESME*) (*ADAM *)  --YE CHIZZZZZZZZZ
+
+

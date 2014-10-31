@@ -38,7 +38,7 @@ operators:		OPP		{System.out.println($OPP.text		+" : "+$OPP.text);};
 
 string:			STR		{System.out.println($STR.text		+" : string");};
 
-comment:	LINECOMMENT	|multicomment ->skip;	 
+comment:	LINECOMMENT	|multicomment ;	 
 
 multicomment:		'(*' .*? '*)';
 

@@ -1,6 +1,6 @@
 grammar Parser;
 
-program:	(pclass)+ ;
+program:	(pclass ';')+ ;
 
 pclass:		KWCLASS TID (KWINHERITS TID)? '{' (feature';')* '}';
 
@@ -29,17 +29,17 @@ expr   :
 		|KWNEW TID
 
 		|OID
-		|INT
-		|STR
+		|('+'|'-')?INT
+		|string
 		|KWTRUE
 		|KWFALSE 	
 		|'{' (expr';')+ '}'
 		|'(' expr ')'  
 		;
 
-comment:	(LINECOMMENT	|multicomment) -> skip;	 
+comment:	LINECOMMENT	|MULTICOMMENT;	 
+string:		STR;
 
-multicomment:	'(*' .*? '*)';
 
 KWCLASS:	[cC][lL][aA][sS][sS];
 KWELSE:	 	[eE][lL][sS][eE];
@@ -63,11 +63,12 @@ KWFALSE: 	 [f][aA][lL][sS][eE];
 
 TID	:	[A-Z][_0-9A-Za-z]* ;
 OID	:	[a-z][_0-9A-Za-z]* ;
-INT	:	('-')?[0-9]+ ;
+INT	:	[0-9]+ ;
 WS	:	[ \t\r\n\f\v]+ -> skip;
 
 OPP	:	([=][>])	|([<][=|\-])	|[\[\]\{\}\(\)\.\*\+\-/@~<>=;,:];
 
-STR	:	'"' ([\\].|	~('\n'|'\r')	)*?'"';
+STR	:	'"' ([\\].|	[\\][\r][\n]|	~('\n'|'\r')	)*?'"';
 
-LINECOMMENT:	'--' .*? ('\r\n'|'\n');
+LINECOMMENT:	'--' .*? ('\r\n'|'\n') -> skip;
+MULTICOMMENT:	'(*' .*? '*)' -> skip;

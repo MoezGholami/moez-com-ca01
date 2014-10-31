@@ -1,4 +1,2 @@
--- this is some comment or something
-(* NOT NESTED *)
-
-ALI (*MALI*) ESME*) (*ADAM *)  --YE CHIZZZZZZZZZ
+"this is \" ali\
+hasan"

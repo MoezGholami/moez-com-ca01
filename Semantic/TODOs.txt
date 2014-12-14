@@ -1,0 +1,1 @@
+1: install official cool compiler

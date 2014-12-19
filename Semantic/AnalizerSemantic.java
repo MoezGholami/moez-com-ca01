@@ -1,3 +1,4 @@
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 
@@ -43,21 +44,25 @@ public class AnalizerSemantic {
 			addExpectingClass(Pname);
 			incomming = new CoolClass(Cname, findCoolClassByName(Pname,expectingClassList));
 		}
-		if (hasLoopWith(incomming.parent, incomming.name))
+		if (hasLoopWith(incomming.Ancestor, incomming.name))
 			throw new LoopException(incomming.name);
 		classList.add(incomming);
 	}
 
+	public void addMethod(String mName,String cName){
+		//TODO: arguments of this function
+	}
+	
 	private void migrate2ClassList(String Cname, String Pname) throws LoopException {
 		CoolClass migrating = findCoolClassByName(Cname, expectingClassList);
 		expectingClassList.remove(migrating);
 		if (hasClassWithName(Pname, classList))
-			migrating.parent = findCoolClassByName(Pname, classList);
+			migrating.Ancestor = findCoolClassByName(Pname, classList);
 		else {
 			addExpectingClass(Pname);
-			migrating.parent = findCoolClassByName(Pname, expectingClassList);
+			migrating.Ancestor = findCoolClassByName(Pname, expectingClassList);
 		}
-		if (hasLoopWith(migrating.parent, migrating.name))
+		if (hasLoopWith(migrating.Ancestor, migrating.name))
 			throw new LoopException(migrating.name);
 		classList.add(migrating);
 	}
@@ -67,7 +72,7 @@ public class AnalizerSemantic {
 			return false;
 		if (c.name == Cname)
 			return true;
-		return hasLoopWith(c.parent, Cname);
+		return hasLoopWith(c.Ancestor, Cname);
 	}
 
 	private CoolClass findCoolClassByName(String n, ArrayList<CoolClass> list) {
@@ -77,10 +82,21 @@ public class AnalizerSemantic {
 		return null;
 	}
 
+	private Method findMethodByName(String n,ArrayList<Method> list){
+		for(int i=0;i<list.size();i++)
+			if(list.get(i).Name.equals(n))
+				return list.get(i);
+		return null;
+	}
+	
 	private boolean hasClassWithName(String n, ArrayList<CoolClass> list) {
 		return findCoolClassByName(n, list) != null;
 	}
 
+	private boolean hasMethodWithName(String n, ArrayList<Method> list){
+		return findMethodByName(n,list) != null;
+	}
+	
 	public void commitFirstPass() throws NoMainException, DanglingClassException{
 		if(!hasMain())
 			throw new NoMainException();
@@ -136,21 +152,62 @@ public class AnalizerSemantic {
 			return "No Main class was found.\n";
 		}
 	}
+
+	
+	
+	private static class Variable
+	{
+		String Name;
+		CoolClass Type;
+		public Variable(String n, CoolClass t)
+		{
+			Name=n;
+			Type=t;
+		}
+		public String toString()	{ return Name+":"+Type.toString(); }
+	}
+
+	private static class Method
+	{
+		public static class Argument extends Variable
+		{
+			public Argument(String n, CoolClass t) {super(n, t);}
+		}
+		String Name;
+		ArrayList<Argument> args;
+		CoolClass OwnerClass;
+		CoolClass ReturnType;
+		Scope MainScope;
+	}
+
+	private static class Scope
+	{
+		Scope Parent;
+		Method MotherMethod;
+		ArrayList<Variable> VarList;
+	}
 	
 	private static class CoolClass {
-		CoolClass parent;
+
+		CoolClass Ancestor;
 		String name;
+		private ArrayList<Method> MethodList;
+		private ArrayList<Variable> Fields;
+		
 		public static final CoolClass coolObject = new CoolClass("Object");
 		private CoolClass(String n){
-			parent = null;
+			Ancestor = null;
 			name = n;
+			MethodList=new ArrayList<Method>();
+			Fields= new ArrayList<Variable>();
 		}
 		CoolClass(String n,CoolClass p){
 			name = n;
 			if(p == null)
-				parent = coolObject;
+				Ancestor = coolObject;
 			else 
-				parent = p;
+				Ancestor = p;
 		}
+		public String toString()	{ return name; }
 	}
 }

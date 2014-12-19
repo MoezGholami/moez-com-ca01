@@ -238,6 +238,7 @@ public class SemanticParser extends Parser {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
+				//method detected
 				setState(59); match(OID);
 				setState(60); match(T__9);
 				setState(69);
@@ -273,6 +274,7 @@ public class SemanticParser extends Parser {
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
+				//field detected
 				setState(78); match(OID);
 				setState(79); match(T__10);
 				setState(80); match(TID);

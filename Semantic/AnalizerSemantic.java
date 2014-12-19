@@ -13,6 +13,7 @@ public class AnalizerSemantic {
 	private AnalizerSemantic() {
 		classList = new ArrayList<CoolClass>();
 		classList.add(CoolClass.coolObject);
+		expectingClassList = new ArrayList<CoolClass>();
 	}
 
 	public boolean hasMain() {
@@ -27,6 +28,8 @@ public class AnalizerSemantic {
 	}
 
 	public void addClass(String Cname, String Pname) throws LoopException,DuplicateClassX {
+		if(Pname==null)
+			Pname = CoolClass.coolObject.name;
 		if (hasClassWithName(Cname, classList))
 			throw new DuplicateClassX(Cname);
 		if (hasClassWithName(Cname, expectingClassList)) {
@@ -35,12 +38,10 @@ public class AnalizerSemantic {
 		}
 		CoolClass incomming = null;
 		if (hasClassWithName(Pname, classList))
-			incomming = new CoolClass(Cname, findCoolClassByName(Pname,
-					classList));
+			incomming = new CoolClass(Cname, findCoolClassByName(Pname,classList));
 		else {
 			addExpectingClass(Pname);
-			incomming = new CoolClass(Cname, findCoolClassByName(Pname,
-					expectingClassList));
+			incomming = new CoolClass(Cname, findCoolClassByName(Pname,expectingClassList));
 		}
 		if (hasLoopWith(incomming.parent, incomming.name))
 			throw new LoopException(incomming.name);
@@ -80,8 +81,19 @@ public class AnalizerSemantic {
 		return findCoolClassByName(n, list) != null;
 	}
 
-	public static class LoopException extends Throwable{
+	public void commitFirstPass() throws NoMainException, DanglingClassException{
+		if(!hasMain())
+			throw new NoMainException();
+		if(expectingClassList.size()!=0)
+			throw new DanglingClassException(expectingClassList);
+	}
+
+	public static abstract class SemanticError extends Throwable {
 		private static final long serialVersionUID = 100L;
+		}
+
+	public static class LoopException extends SemanticError{
+		private static final long serialVersionUID = 101L;
 		private String className;
 		public LoopException(String n){
 			className = n;
@@ -91,14 +103,37 @@ public class AnalizerSemantic {
 		}
 	}
 	
-	public static class DuplicateClassX extends Throwable{
-		private static final long serialVersionUID = 101L;
+	public static class DuplicateClassX extends SemanticError{
+		private static final long serialVersionUID = 102L;
 		private String className;
 		public DuplicateClassX(String n) {
 			className = n;
 		}
 		public String toString(){
 			return "The following class was already decleared : "+className+"\n";
+		}
+	}
+	
+	public static class DanglingClassException extends SemanticError{
+		private static final long serialVersionUID = 103L;
+		ArrayList<CoolClass> list;
+		public DanglingClassException(ArrayList<CoolClass> l)
+		{
+			list=l;
+		}
+		public String toString(){
+			String result;
+			result="The classes with these name are expected:\n";
+			for(int i=0; i<list.size(); ++i)
+				result=result+list.get(i).name+", ";
+			return result;
+		}
+	}
+	
+	public static class NoMainException extends SemanticError{
+		private static final long serialVersionUID = 104L;
+		public String toString(){
+			return "No Main class was found.\n";
 		}
 	}
 	

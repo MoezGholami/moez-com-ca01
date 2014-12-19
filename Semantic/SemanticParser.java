@@ -5,7 +5,6 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.misc.*;
 import org.antlr.v4.runtime.tree.*;
 
-
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
@@ -108,11 +107,14 @@ public class SemanticParser extends Parser {
 				_la = _input.LA(1);
 			} while ( _la==KWCLASS );
 			}
+			semAnalizer.commitFirstPass();
 		}
 		catch (RecognitionException re) {
 			_localctx.exception = re;
 			_errHandler.reportError(this, re);
 			_errHandler.recover(this, re);
+		} catch (AnalizerSemantic.SemanticError e) {
+			System.err.println(e.toString());
 		}
 		finally {
 			exitRule();
@@ -155,7 +157,6 @@ public class SemanticParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			String Cname = null,Pname=null;
-				System.out.println("####@#CLASS DECLERATION");
 			setState(42); match(KWCLASS);
 			setState(43); Cname = match(TID).getText();
 			setState(46);
@@ -169,7 +170,7 @@ public class SemanticParser extends Parser {
 			}
 			try {
 				semAnalizer.addClass(Cname, Pname);
-			} catch (Throwable e) {
+			} catch (AnalizerSemantic.SemanticError e) {
 				System.err.printf(e.toString());
 			}
 			setState(48); match(T__4);

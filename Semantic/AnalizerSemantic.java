@@ -49,7 +49,7 @@ public class AnalizerSemantic {
 		ArrayList<Variable> args=convertRawVars2Vars(RawArgs);
 		CoolClass OwnerCoolClass=getPossibleClass(OwnerClassName);
 		Method inComingMethod= new Method(MethodName, getPossibleClass(MethodTypeName), OwnerCoolClass, args);
-		if(hasMethodWithName(inComingMethod.Name, OwnerCoolClass.MethodList)
+		if(hasMethodWithName(inComingMethod.Name, OwnerCoolClass.MethodList)  //52HERE
 				|| duplicateAndNotOverrided(inComingMethod, inComingMethod.OwnerClass.Ancestor))
 			throw new DuplicateMethodName(MethodName, this);
 		OwnerCoolClass.MethodList.add(inComingMethod);
@@ -136,6 +136,7 @@ public class AnalizerSemantic {
 			throw new FirstPassUnsuccessful(this);
 		PassedTimes=1;
 	}
+	
 
 	private Scope getScopeInMethod(Method m, ArrayList<Integer> key)
 	{
@@ -389,6 +390,8 @@ public class AnalizerSemantic {
 				Ancestor = coolObject;
 			else 
 				Ancestor = p;
+			MethodList=new ArrayList<Method>();
+			Fields= new ArrayList<Variable>();
 		}
 		public String toString()	{ return name; }
 	}

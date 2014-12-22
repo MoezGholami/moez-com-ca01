@@ -4,64 +4,55 @@ import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.misc.*;
 import org.antlr.v4.runtime.tree.*;
-
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
-
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
 public class SemanticParser extends Parser {
 	static { RuntimeMetaData.checkVersion("4.4", RuntimeMetaData.VERSION); }
-
 	AnalizerSemantic semAnalizer = AnalizerSemantic.getInstance();
 	String CurClassName = null, CurrMethodName=null, CurrVarName=null, CurrMethodTypeName=null, CurrVarTypeName=null;
 	ArrayList<AnalizerSemantic.UnrecognizedTypeVar> VarList;
-	
+	ArrayList<Integer> CurrScopeKey;
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
-		T__18=1, T__17=2, T__16=3, T__15=4, T__14=5, T__13=6, T__12=7, T__11=8, 
-		T__10=9, T__9=10, T__8=11, T__7=12, T__6=13, T__5=14, T__4=15, T__3=16, 
-		T__2=17, T__1=18, T__0=19, KWCLASS=20, KWELSE=21, KWFI=22, KWIF=23, KWIN=24, 
-		KWINHERITS=25, KWISVOID=26, KWLET=27, KWLOOP=28, KWPOOL=29, KWTHEN=30, 
-		KWWHILE=31, KWCASE=32, KWESAC=33, KWNEW=34, KWOF=35, KWNOT=36, KWTRUE=37, 
-		KWFALSE=38, TID=39, OID=40, INT=41, WS=42, OPP=43, STR=44, LINECOMMENT=45, 
+		T__18=1, T__17=2, T__16=3, T__15=4, T__14=5, T__13=6, T__12=7, T__11=8,
+		T__10=9, T__9=10, T__8=11, T__7=12, T__6=13, T__5=14, T__4=15, T__3=16,
+		T__2=17, T__1=18, T__0=19, KWCLASS=20, KWELSE=21, KWFI=22, KWIF=23, KWIN=24,
+		KWINHERITS=25, KWISVOID=26, KWLET=27, KWLOOP=28, KWPOOL=29, KWTHEN=30,
+		KWWHILE=31, KWCASE=32, KWESAC=33, KWNEW=34, KWOF=35, KWNOT=36, KWTRUE=37,
+		KWFALSE=38, TID=39, OID=40, INT=41, WS=42, OPP=43, STR=44, LINECOMMENT=45,
 		MULTICOMMENT=46;
 	public static final String[] tokenNames = {
-		"<INVALID>", "'.'", "'=>'", "')'", "','", "'+'", "'-'", "'*'", "'@'", 
-		"':'", "'('", "'<'", "'='", "';'", "'<='", "'{'", "'/'", "'~'", "'}'", 
-		"'<-'", "KWCLASS", "KWELSE", "KWFI", "KWIF", "KWIN", "KWINHERITS", "KWISVOID", 
-		"KWLET", "KWLOOP", "KWPOOL", "KWTHEN", "KWWHILE", "KWCASE", "KWESAC", 
-		"KWNEW", "KWOF", "KWNOT", "KWTRUE", "KWFALSE", "TID", "OID", "INT", "WS", 
+		"<INVALID>", "'.'", "'=>'", "')'", "','", "'+'", "'-'", "'*'", "'@'",
+		"':'", "'('", "'<'", "'='", "';'", "'<='", "'{'", "'/'", "'~'", "'}'",
+		"'<-'", "KWCLASS", "KWELSE", "KWFI", "KWIF", "KWIN", "KWINHERITS", "KWISVOID",
+		"KWLET", "KWLOOP", "KWPOOL", "KWTHEN", "KWWHILE", "KWCASE", "KWESAC",
+		"KWNEW", "KWOF", "KWNOT", "KWTRUE", "KWFALSE", "TID", "OID", "INT", "WS",
 		"OPP", "STR", "LINECOMMENT", "MULTICOMMENT"
 	};
 	public static final int
-		RULE_program = 0, RULE_pclass = 1, RULE_feature = 2, RULE_formal = 3, 
-		RULE_expr1 = 4, RULE_expr2 = 5, RULE_expr2p = 6, RULE_expr3 = 7, RULE_expr4 = 8, 
-		RULE_expr4p = 9, RULE_expr5 = 10, RULE_expr5p = 11, RULE_expr6 = 12, RULE_expr6p = 13, 
-		RULE_expr = 14, RULE_comment = 15, RULE_string = 16;
+		RULE_program = 0, RULE_pclass = 1, RULE_feature = 2, RULE_formal = 3,
+			     RULE_expr1 = 4, RULE_expr2 = 5, RULE_expr2p = 6, RULE_expr3 = 7, RULE_expr4 = 8,
+			     RULE_expr4p = 9, RULE_expr5 = 10, RULE_expr5p = 11, RULE_expr6 = 12, RULE_expr6p = 13,
+			     RULE_expr = 14, RULE_comment = 15, RULE_string = 16;
 	public static final String[] ruleNames = {
-		"program", "pclass", "feature", "formal", "expr1", "expr2", "expr2p", 
-		"expr3", "expr4", "expr4p", "expr5", "expr5p", "expr6", "expr6p", "expr", 
+		"program", "pclass", "feature", "formal", "expr1", "expr2", "expr2p",
+		"expr3", "expr4", "expr4p", "expr5", "expr5p", "expr6", "expr6p", "expr",
 		"comment", "string"
 	};
-
 	@Override
-	public String getGrammarFileName() { return "Semantic.g4"; }
-
+		public String getGrammarFileName() { return "Semantic.g4"; }
 	@Override
-	public String[] getTokenNames() { return tokenNames; }
-
+		public String[] getTokenNames() { return tokenNames; }
 	@Override
-	public String[] getRuleNames() { return ruleNames; }
-
+		public String[] getRuleNames() { return ruleNames; }
 	@Override
-	public String getSerializedATN() { return _serializedATN; }
-
+		public String getSerializedATN() { return _serializedATN; }
 	@Override
-	public ATN getATN() { return _ATN; }
-
+		public ATN getATN() { return _ATN; }
 	public SemanticParser(TokenStream input) {
 		super(input);
 		_interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
@@ -78,15 +69,14 @@ public class SemanticParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_program; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterProgram(this);
-		}
+			public void enterRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterProgram(this);
+			}
 		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitProgram(this);
-		}
+			public void exitRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitProgram(this);
+			}
 	}
-
 	public final ProgramContext program() throws RecognitionException {
 		ProgramContext _localctx = new ProgramContext(_ctx, getState());
 		enterRule(_localctx, 0, RULE_program);
@@ -94,21 +84,24 @@ public class SemanticParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(37); 
-			_errHandler.sync(this);
-			_la = _input.LA(1);
-			do {
-				{
-				{
-				setState(34); pclass();
-				setState(35); match(T__6);
-				}
-				}
-				setState(39); 
+				setState(37);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-			} while ( _la==KWCLASS );
+				do {
+					{
+						{
+							setState(34); pclass();
+							setState(35); match(T__6);
+						}
+					}
+					setState(39);
+					_errHandler.sync(this);
+					_la = _input.LA(1);
+				} while ( _la==KWCLASS );
 			}
+			semAnalizer.addClass("Int", "Object");
+			semAnalizer.addClass("String", "Object");
+			semAnalizer.addClass("IO","Object");
 			semAnalizer.commitFirstPass();
 		}
 		catch (RecognitionException re) {
@@ -123,7 +116,6 @@ public class SemanticParser extends Parser {
 		}
 		return _localctx;
 	}
-
 	public static class PclassContext extends ParserRuleContext {
 		public List<FeatureContext> feature() {
 			return getRuleContexts(FeatureContext.class);
@@ -142,15 +134,14 @@ public class SemanticParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_pclass; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterPclass(this);
-		}
+			public void enterRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterPclass(this);
+			}
 		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitPclass(this);
-		}
+			public void exitRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitPclass(this);
+			}
 	}
-
 	public final PclassContext pclass() throws RecognitionException {
 		PclassContext _localctx = new PclassContext(_ctx, getState());
 		enterRule(_localctx, 2, RULE_pclass);
@@ -158,36 +149,35 @@ public class SemanticParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			//new class detected
-			String Pname=null;
-			setState(42); match(KWCLASS);
-			setState(43); CurClassName = match(TID).getText();
-			setState(46);
-			
-			_la = _input.LA(1);
-			if (_la==KWINHERITS) {
-				{
-				setState(44); match(KWINHERITS);
-				setState(45); Pname = match(TID).getText();
+				//new class detected
+				String Pname=null;
+				setState(42); match(KWCLASS);
+				setState(43); CurClassName = match(TID).getText();
+				setState(46);
+				_la = _input.LA(1);
+				if (_la==KWINHERITS) {
+					{
+						setState(44); match(KWINHERITS);
+						setState(45); Pname = match(TID).getText();
+					}
 				}
-			}
-			semAnalizer.addClass(CurClassName, Pname);
-			setState(48); match(T__4);
-			setState(54);
-			_errHandler.sync(this);
-			_la = _input.LA(1);
-			while (_la==OID) {
-				{
-				{
-				setState(49); feature();
-				setState(50); match(T__6);
-				}
-				}
-				setState(56);
+				semAnalizer.addClass(CurClassName, Pname);
+				setState(48); match(T__4);
+				setState(54);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-			}
-			setState(57); match(T__1);
+				while (_la==OID) {
+					{
+						{
+							setState(49); feature();
+							setState(50); match(T__6);
+						}
+					}
+					setState(56);
+					_errHandler.sync(this);
+					_la = _input.LA(1);
+				}
+				setState(57); match(T__1);
 			}
 		}
 		catch (RecognitionException re) {
@@ -203,7 +193,6 @@ public class SemanticParser extends Parser {
 		}
 		return _localctx;
 	}
-
 	public static class FeatureContext extends ParserRuleContext {
 		public FormalContext formal(int i) {
 			return getRuleContext(FormalContext.class,i);
@@ -221,15 +210,14 @@ public class SemanticParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_feature; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterFeature(this);
-		}
+			public void enterRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterFeature(this);
+			}
 		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitFeature(this);
-		}
+			public void exitRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitFeature(this);
+			}
 	}
-
 	public final FeatureContext feature() throws RecognitionException {
 		FeatureContext _localctx = new FeatureContext(_ctx, getState());
 		enterRule(_localctx, 4, RULE_feature);
@@ -237,63 +225,62 @@ public class SemanticParser extends Parser {
 		try {
 			setState(85);
 			switch ( getInterpreter().adaptivePredict(_input,6,_ctx) ) {
-			case 1:
-				enterOuterAlt(_localctx, 1);
-				{
-				//method detected
-				VarList=new ArrayList<AnalizerSemantic.UnrecognizedTypeVar>();
-				setState(59); CurrMethodName=match(OID).getText();
-				setState(60); match(T__9);
-				setState(69);
-				_la = _input.LA(1);
-				if (_la==OID) {
+				case 1:
+					enterOuterAlt(_localctx, 1);
 					{
-					setState(61); formal();
-					setState(66);
-					_errHandler.sync(this);
-					_la = _input.LA(1);
-					while (_la==T__15) {
-						{
-						{
-						setState(62); match(T__15);
-						setState(63); formal();
-						}
-						}
-						setState(68);
-						_errHandler.sync(this);
+						//method detected
+						VarList=new ArrayList<AnalizerSemantic.UnrecognizedTypeVar>();
+						setState(59); CurrMethodName=match(OID).getText();
+						setState(60); match(T__9);
+						setState(69);
 						_la = _input.LA(1);
+						if (_la==OID) {
+							{
+								setState(61); formal();
+								setState(66);
+								_errHandler.sync(this);
+								_la = _input.LA(1);
+								while (_la==T__15) {
+									{
+										{
+											setState(62); match(T__15);
+											setState(63); formal();
+										}
+									}
+									setState(68);
+									_errHandler.sync(this);
+									_la = _input.LA(1);
+								}
+							}
+						}
+						setState(71); match(T__16);
+						setState(72); match(T__10);
+						setState(73); CurrMethodTypeName=match(TID).getText();
+						CurrScopeKey = semAnalizer.addMethod(CurClassName, CurrMethodName, CurrMethodTypeName, VarList);
+						setState(74); match(T__4);
+						setState(75); expr();
+						setState(76); match(T__1);
+						semAnalizer.updateKeyWhenClosingScope(CurrScopeKey);
 					}
-					}
-				}
-
-				setState(71); match(T__16);
-				setState(72); match(T__10);
-				setState(73); CurrMethodTypeName=match(TID).getText();
-				semAnalizer.addMethod(CurClassName, CurrMethodName, CurrMethodTypeName, VarList);
-				setState(74); match(T__4);
-				setState(75); expr();
-				setState(76); match(T__1);
-				}
-				break;
-			case 2:
-				enterOuterAlt(_localctx, 2);
-				{
-				//field detected
-				setState(78); CurrVarTypeName=match(OID).getText();
-				setState(79); match(T__10);
-				setState(80); CurrVarTypeName=match(TID).getText();
-				semAnalizer.addField(CurClassName, new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName));
-				setState(83);
-				_la = _input.LA(1);
-				if (_la==T__0) {
+					break;
+				case 2:
+					enterOuterAlt(_localctx, 2);
 					{
-					setState(81); match(T__0);
-					setState(82); expr();
+						//field detected
+						setState(78); CurrVarTypeName=match(OID).getText();
+						setState(79); match(T__10);
+						setState(80); CurrVarTypeName=match(TID).getText();
+						semAnalizer.addField(CurClassName, new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName));
+						setState(83);
+						_la = _input.LA(1);
+						if (_la==T__0) {
+							{
+								setState(81); match(T__0);
+								setState(82); expr();
+							}
+						}
 					}
-				}
-
-				}
-				break;
+					break;
 			}
 		}
 		catch (RecognitionException re) {
@@ -310,7 +297,6 @@ public class SemanticParser extends Parser {
 		}
 		return _localctx;
 	}
-
 	public static class FormalContext extends ParserRuleContext {
 		public TerminalNode TID() { return getToken(SemanticParser.TID, 0); }
 		public TerminalNode OID() { return getToken(SemanticParser.OID, 0); }
@@ -319,24 +305,23 @@ public class SemanticParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_formal; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterFormal(this);
-		}
+			public void enterRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterFormal(this);
+			}
 		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitFormal(this);
-		}
+			public void exitRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitFormal(this);
+			}
 	}
-
 	public final FormalContext formal() throws RecognitionException {
 		FormalContext _localctx = new FormalContext(_ctx, getState());
 		enterRule(_localctx, 6, RULE_formal);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(87); CurrVarName=match(OID).getText();
-			setState(88); match(T__10);
-			setState(89); CurrVarTypeName=match(TID).getText();
+				setState(87); CurrVarName=match(OID).getText();
+				setState(88); match(T__10);
+				setState(89); CurrVarTypeName=match(TID).getText();
 			}
 			VarList.add(new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName));
 		}
@@ -350,7 +335,6 @@ public class SemanticParser extends Parser {
 		}
 		return _localctx;
 	}
-
 	public static class Expr1Context extends ParserRuleContext {
 		public TerminalNode KWFI() { return getToken(SemanticParser.KWFI, 0); }
 		public StringContext string() {
@@ -390,15 +374,14 @@ public class SemanticParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_expr1; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr1(this);
-		}
+			public void enterRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr1(this);
+			}
 		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr1(this);
-		}
+			public void exitRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr1(this);
+			}
 	}
-
 	public final Expr1Context expr1() throws RecognitionException {
 		Expr1Context _localctx = new Expr1Context(_ctx, getState());
 		enterRule(_localctx, 8, RULE_expr1);
@@ -406,217 +389,219 @@ public class SemanticParser extends Parser {
 		try {
 			setState(184);
 			switch ( getInterpreter().adaptivePredict(_input,15,_ctx) ) {
-			case 1:
-				enterOuterAlt(_localctx, 1);
-				{
-				setState(91); match(KWIF);
-				setState(92); expr();
-				setState(93); match(KWTHEN);
-				setState(94); expr();
-				setState(95); match(KWELSE);
-				setState(96); expr();
-				setState(97); match(KWFI);
-				}
-				break;
-			case 2:
-				enterOuterAlt(_localctx, 2);
-				{
-				setState(99); match(KWWHILE);
-				setState(100); expr();
-				setState(101); match(KWLOOP);
-				setState(102); expr();
-				setState(103); match(KWPOOL);
-				}
-				break;
-			case 3:
-				enterOuterAlt(_localctx, 3);
-				{
-				setState(105); match(KWLET);
-				setState(106); match(OID);
-				setState(107); match(T__10);
-				setState(108); match(TID);
-				setState(111);
-				_la = _input.LA(1);
-				if (_la==T__0) {
+				case 1:
+					enterOuterAlt(_localctx, 1);
 					{
-					setState(109); match(T__0);
-					setState(110); expr();
+						setState(91); match(KWIF);
+						setState(92); expr();
+						setState(93); match(KWTHEN);
+						setState(94); expr();
+						setState(95); match(KWELSE);
+						setState(96); expr();
+						setState(97); match(KWFI);
 					}
-				}
-
-				setState(123);
-				_errHandler.sync(this);
-				_la = _input.LA(1);
-				while (_la==T__15) {
+					break;
+				case 2:
+					enterOuterAlt(_localctx, 2);
 					{
+						setState(99); match(KWWHILE);
+						setState(100); expr();
+						setState(101); match(KWLOOP);
+						setState(102); expr();
+						setState(103); match(KWPOOL);
+					}
+					break;
+				case 3:
+					enterOuterAlt(_localctx, 3);
 					{
-					setState(113); match(T__15);
-					setState(114); match(OID);
-					setState(115); match(T__10);
-					setState(116); match(TID);
-					setState(119);
-					_la = _input.LA(1);
-					if (_la==T__0) {
-						{
-						setState(117); match(T__0);
-						setState(118); expr();
+						//new Scope detected (let)
+						semAnalizer.addScope(CurClassName, CurrMethodName, CurrScopeKey);
+						setState(105); match(KWLET);
+						setState(106); CurrVarName=match(OID).getText();
+						setState(107); match(T__10);
+						setState(108); CurrVarTypeName=match(TID).getText();
+						setState(111);
+						semAnalizer.addVariable2Scope(CurClassName, CurrMethodName, CurrScopeKey,new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName) );
+						_la = _input.LA(1);
+						if (_la==T__0) {
+							{
+								setState(109); match(T__0);
+								setState(110); expr();
+							}
 						}
-					}
-
-					}
-					}
-					setState(125);
-					_errHandler.sync(this);
-					_la = _input.LA(1);
-				}
-				setState(126); match(KWIN);
-				setState(127); expr();
-				}
-				break;
-			case 4:
-				enterOuterAlt(_localctx, 4);
-				{
-				setState(128); match(KWCASE);
-				setState(129); expr();
-				setState(130); match(KWOF);
-				setState(138); 
-				_errHandler.sync(this);
-				_la = _input.LA(1);
-				do {
-					{
-					{
-					setState(131); match(OID);
-					setState(132); match(T__10);
-					setState(133); match(TID);
-					setState(134); match(T__17);
-					setState(135); expr();
-					setState(136); match(T__6);
-					}
-					}
-					setState(140); 
-					_errHandler.sync(this);
-					_la = _input.LA(1);
-				} while ( _la==OID );
-				setState(142); match(KWESAC);
-				}
-				break;
-			case 5:
-				enterOuterAlt(_localctx, 5);
-				{
-				setState(144); match(T__4);
-				setState(148); 
-				_errHandler.sync(this);
-				_la = _input.LA(1);
-				do {
-					{
-					{
-					setState(145); expr();
-					setState(146); match(T__6);
-					}
-					}
-					setState(150); 
-					_errHandler.sync(this);
-					_la = _input.LA(1);
-				} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__14) | (1L << T__13) | (1L << T__9) | (1L << T__4) | (1L << T__2) | (1L << KWIF) | (1L << KWISVOID) | (1L << KWLET) | (1L << KWWHILE) | (1L << KWCASE) | (1L << KWNEW) | (1L << KWNOT) | (1L << KWTRUE) | (1L << KWFALSE) | (1L << OID) | (1L << INT) | (1L << STR))) != 0) );
-				setState(152); match(T__1);
-				}
-				break;
-			case 6:
-				enterOuterAlt(_localctx, 6);
-				{
-				setState(154); match(T__9);
-				setState(155); expr();
-				setState(156); match(T__16);
-				}
-				break;
-			case 7:
-				enterOuterAlt(_localctx, 7);
-				{
-				setState(158); match(OID);
-				setState(159); match(T__9);
-				setState(168);
-				_la = _input.LA(1);
-				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__14) | (1L << T__13) | (1L << T__9) | (1L << T__4) | (1L << T__2) | (1L << KWIF) | (1L << KWISVOID) | (1L << KWLET) | (1L << KWWHILE) | (1L << KWCASE) | (1L << KWNEW) | (1L << KWNOT) | (1L << KWTRUE) | (1L << KWFALSE) | (1L << OID) | (1L << INT) | (1L << STR))) != 0)) {
-					{
-					setState(160); expr();
-					setState(165);
-					_errHandler.sync(this);
-					_la = _input.LA(1);
-					while (_la==T__15) {
-						{
-						{
-						setState(161); match(T__15);
-						setState(162); expr();
-						}
-						}
-						setState(167);
+						setState(123);
 						_errHandler.sync(this);
 						_la = _input.LA(1);
+						while (_la==T__15) {
+							{
+								{
+									setState(113); match(T__15);
+									setState(114); CurrVarName=match(OID).getText();
+									setState(115); match(T__10);
+									setState(116); CurrVarTypeName=match(TID).getText();
+									setState(119);
+									semAnalizer.addVariable2Scope(CurClassName, CurrMethodName, CurrScopeKey,new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName) );
+									_la = _input.LA(1);
+									if (_la==T__0) {
+										{
+											setState(117); match(T__0);
+											setState(118); expr();
+										}
+									}
+									
+								}
+							}
+							setState(125);
+							_errHandler.sync(this);
+							_la = _input.LA(1);
+						}
+						setState(126); match(KWIN);
+						setState(127); expr();
+						semAnalizer.updateKeyWhenClosingScope(CurrScopeKey);
 					}
-					}
-				}
-
-				setState(170); match(T__16);
-				}
-				break;
-			case 8:
-				enterOuterAlt(_localctx, 8);
-				{
-				setState(171); match(OID);
-				setState(172); match(T__0);
-				setState(173); expr();
-				}
-				break;
-			case 9:
-				enterOuterAlt(_localctx, 9);
-				{
-				setState(174); match(KWNEW);
-				setState(175); match(TID);
-				}
-				break;
-			case 10:
-				enterOuterAlt(_localctx, 10);
-				{
-				setState(176); match(OID);
-				}
-				break;
-			case 11:
-				enterOuterAlt(_localctx, 11);
-				{
-				setState(178);
-				_la = _input.LA(1);
-				if (_la==T__14 || _la==T__13) {
+					break;
+				case 4:
+					enterOuterAlt(_localctx, 4);
 					{
-					setState(177);
-					_la = _input.LA(1);
-					if ( !(_la==T__14 || _la==T__13) ) {
-					_errHandler.recoverInline(this);
+						setState(128); match(KWCASE);
+						setState(129); expr();
+						setState(130); match(KWOF);
+						setState(138);
+						_errHandler.sync(this);
+						_la = _input.LA(1);
+						do {
+							{
+								{
+									setState(131); match(OID);
+									setState(132); match(T__10);
+									setState(133); match(TID);
+									setState(134); match(T__17);
+									setState(135); expr();
+									setState(136); match(T__6);
+								}
+							}
+							setState(140);
+							_errHandler.sync(this);
+							_la = _input.LA(1);
+						} while ( _la==OID );
+						setState(142); match(KWESAC);
 					}
-					consume();
+					break;
+				case 5:
+					enterOuterAlt(_localctx, 5);
+					{
+						setState(144); match(T__4);
+						setState(148);
+						_errHandler.sync(this);
+						_la = _input.LA(1);
+						do {
+							{
+								{
+									setState(145); expr();
+									setState(146); match(T__6);
+								}
+							}
+							setState(150);
+							_errHandler.sync(this);
+							_la = _input.LA(1);
+						} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__14) | (1L << T__13) | (1L << T__9) | (1L << T__4) | (1L << T__2) | (1L << KWIF) | (1L << KWISVOID) | (1L << KWLET) | (1L << KWWHILE) | (1L << KWCASE) | (1L << KWNEW) | (1L << KWNOT) | (1L << KWTRUE) | (1L << KWFALSE) | (1L << OID) | (1L << INT) | (1L << STR))) != 0) );
+						setState(152); match(T__1);
 					}
-				}
-
-				setState(180); match(INT);
-				}
-				break;
-			case 12:
-				enterOuterAlt(_localctx, 12);
-				{
-				setState(181); string();
-				}
-				break;
-			case 13:
-				enterOuterAlt(_localctx, 13);
-				{
-				setState(182); match(KWTRUE);
-				}
-				break;
-			case 14:
-				enterOuterAlt(_localctx, 14);
-				{
-				setState(183); match(KWFALSE);
-				}
-				break;
+					break;
+				case 6:
+					enterOuterAlt(_localctx, 6);
+					{
+						setState(154); match(T__9);
+						setState(155); expr();
+						setState(156); match(T__16);
+					}
+					break;
+				case 7:
+					enterOuterAlt(_localctx, 7);
+					{
+						setState(158); match(OID);
+						setState(159); match(T__9);
+						setState(168);
+						_la = _input.LA(1);
+						if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__14) | (1L << T__13) | (1L << T__9) | (1L << T__4) | (1L << T__2) | (1L << KWIF) | (1L << KWISVOID) | (1L << KWLET) | (1L << KWWHILE) | (1L << KWCASE) | (1L << KWNEW) | (1L << KWNOT) | (1L << KWTRUE) | (1L << KWFALSE) | (1L << OID) | (1L << INT) | (1L << STR))) != 0)) {
+							{
+								setState(160); expr();
+								setState(165);
+								_errHandler.sync(this);
+								_la = _input.LA(1);
+								while (_la==T__15) {
+									{
+										{
+											setState(161); match(T__15);
+											setState(162); expr();
+										}
+									}
+									setState(167);
+									_errHandler.sync(this);
+									_la = _input.LA(1);
+								}
+							}
+						}
+						setState(170); match(T__16);
+					}
+					break;
+				case 8:
+					enterOuterAlt(_localctx, 8);
+					{
+						setState(171); match(OID);
+						setState(172); match(T__0);
+						setState(173); expr();
+					}
+					break;
+				case 9:
+					enterOuterAlt(_localctx, 9);
+					{
+						setState(174); match(KWNEW);
+						setState(175); match(TID);
+					}
+					break;
+				case 10:
+					enterOuterAlt(_localctx, 10);
+					{
+						setState(176); match(OID);
+					}
+					break;
+				case 11:
+					enterOuterAlt(_localctx, 11);
+					{
+						setState(178);
+						_la = _input.LA(1);
+						if (_la==T__14 || _la==T__13) {
+							{
+								setState(177);
+								_la = _input.LA(1);
+								if ( !(_la==T__14 || _la==T__13) ) {
+									_errHandler.recoverInline(this);
+								}
+								consume();
+							}
+						}
+						setState(180); match(INT);
+					}
+					break;
+				case 12:
+					enterOuterAlt(_localctx, 12);
+					{
+						setState(181); string();
+					}
+					break;
+				case 13:
+					enterOuterAlt(_localctx, 13);
+					{
+						setState(182); match(KWTRUE);
+					}
+					break;
+				case 14:
+					enterOuterAlt(_localctx, 14);
+					{
+						setState(183); match(KWFALSE);
+					}
+					break;
 			}
 		}
 		catch (RecognitionException re) {
@@ -629,7 +614,6 @@ public class SemanticParser extends Parser {
 		}
 		return _localctx;
 	}
-
 	public static class Expr2Context extends ParserRuleContext {
 		public Expr2pContext expr2p() {
 			return getRuleContext(Expr2pContext.class,0);
@@ -642,23 +626,22 @@ public class SemanticParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_expr2; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr2(this);
-		}
+			public void enterRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr2(this);
+			}
 		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr2(this);
-		}
+			public void exitRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr2(this);
+			}
 	}
-
 	public final Expr2Context expr2() throws RecognitionException {
 		Expr2Context _localctx = new Expr2Context(_ctx, getState());
 		enterRule(_localctx, 10, RULE_expr2);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(186); expr1();
-			setState(187); expr2p();
+				setState(186); expr1();
+				setState(187); expr2p();
 			}
 		}
 		catch (RecognitionException re) {
@@ -671,7 +654,6 @@ public class SemanticParser extends Parser {
 		}
 		return _localctx;
 	}
-
 	public static class Expr2pContext extends ParserRuleContext {
 		public Expr2pContext expr2p() {
 			return getRuleContext(Expr2pContext.class,0);
@@ -689,15 +671,14 @@ public class SemanticParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_expr2p; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr2p(this);
-		}
+			public void enterRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr2p(this);
+			}
 		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr2p(this);
-		}
+			public void exitRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr2p(this);
+			}
 	}
-
 	public final Expr2pContext expr2p() throws RecognitionException {
 		Expr2pContext _localctx = new Expr2pContext(_ctx, getState());
 		enterRule(_localctx, 12, RULE_expr2p);
@@ -705,52 +686,50 @@ public class SemanticParser extends Parser {
 		try {
 			setState(209);
 			switch ( getInterpreter().adaptivePredict(_input,19,_ctx) ) {
-			case 1:
-				enterOuterAlt(_localctx, 1);
-				{
-				setState(191);
-				_la = _input.LA(1);
-				if (_la==T__11) {
+				case 1:
+					enterOuterAlt(_localctx, 1);
 					{
-					setState(189); match(T__11);
-					setState(190); match(TID);
-					}
-				}
-
-				setState(193); match(T__18);
-				setState(194); match(OID);
-				setState(195); match(T__9);
-				setState(204);
-				_la = _input.LA(1);
-				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__14) | (1L << T__13) | (1L << T__9) | (1L << T__4) | (1L << T__2) | (1L << KWIF) | (1L << KWISVOID) | (1L << KWLET) | (1L << KWWHILE) | (1L << KWCASE) | (1L << KWNEW) | (1L << KWNOT) | (1L << KWTRUE) | (1L << KWFALSE) | (1L << OID) | (1L << INT) | (1L << STR))) != 0)) {
-					{
-					setState(196); expr();
-					setState(201);
-					_errHandler.sync(this);
-					_la = _input.LA(1);
-					while (_la==T__15) {
-						{
-						{
-						setState(197); match(T__15);
-						setState(198); expr();
-						}
-						}
-						setState(203);
-						_errHandler.sync(this);
+						setState(191);
 						_la = _input.LA(1);
+						if (_la==T__11) {
+							{
+								setState(189); match(T__11);
+								setState(190); match(TID);
+							}
+						}
+						setState(193); match(T__18);
+						setState(194); match(OID);
+						setState(195); match(T__9);
+						setState(204);
+						_la = _input.LA(1);
+						if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__14) | (1L << T__13) | (1L << T__9) | (1L << T__4) | (1L << T__2) | (1L << KWIF) | (1L << KWISVOID) | (1L << KWLET) | (1L << KWWHILE) | (1L << KWCASE) | (1L << KWNEW) | (1L << KWNOT) | (1L << KWTRUE) | (1L << KWFALSE) | (1L << OID) | (1L << INT) | (1L << STR))) != 0)) {
+							{
+								setState(196); expr();
+								setState(201);
+								_errHandler.sync(this);
+								_la = _input.LA(1);
+								while (_la==T__15) {
+									{
+										{
+											setState(197); match(T__15);
+											setState(198); expr();
+										}
+									}
+									setState(203);
+									_errHandler.sync(this);
+									_la = _input.LA(1);
+								}
+							}
+						}
+						setState(206); match(T__16);
+						setState(207); expr2p();
 					}
+					break;
+				case 2:
+					enterOuterAlt(_localctx, 2);
+					{
 					}
-				}
-
-				setState(206); match(T__16);
-				setState(207); expr2p();
-				}
-				break;
-			case 2:
-				enterOuterAlt(_localctx, 2);
-				{
-				}
-				break;
+					break;
 			}
 		}
 		catch (RecognitionException re) {
@@ -763,7 +742,6 @@ public class SemanticParser extends Parser {
 		}
 		return _localctx;
 	}
-
 	public static class Expr3Context extends ParserRuleContext {
 		public Expr2Context expr2() {
 			return getRuleContext(Expr2Context.class,0);
@@ -777,56 +755,55 @@ public class SemanticParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_expr3; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr3(this);
-		}
+			public void enterRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr3(this);
+			}
 		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr3(this);
-		}
+			public void exitRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr3(this);
+			}
 	}
-
 	public final Expr3Context expr3() throws RecognitionException {
 		Expr3Context _localctx = new Expr3Context(_ctx, getState());
 		enterRule(_localctx, 14, RULE_expr3);
 		try {
 			setState(216);
 			switch (_input.LA(1)) {
-			case T__14:
-			case T__13:
-			case T__9:
-			case T__4:
-			case KWIF:
-			case KWLET:
-			case KWWHILE:
-			case KWCASE:
-			case KWNEW:
-			case KWTRUE:
-			case KWFALSE:
-			case OID:
-			case INT:
-			case STR:
-				enterOuterAlt(_localctx, 1);
-				{
-				setState(211); expr2();
-				}
-				break;
-			case T__2:
-				enterOuterAlt(_localctx, 2);
-				{
-				setState(212); match(T__2);
-				setState(213); expr3();
-				}
-				break;
-			case KWISVOID:
-				enterOuterAlt(_localctx, 3);
-				{
-				setState(214); match(KWISVOID);
-				setState(215); expr3();
-				}
-				break;
-			default:
-				throw new NoViableAltException(this);
+				case T__14:
+				case T__13:
+				case T__9:
+				case T__4:
+				case KWIF:
+				case KWLET:
+				case KWWHILE:
+				case KWCASE:
+				case KWNEW:
+				case KWTRUE:
+				case KWFALSE:
+				case OID:
+				case INT:
+				case STR:
+					enterOuterAlt(_localctx, 1);
+					{
+						setState(211); expr2();
+					}
+					break;
+				case T__2:
+					enterOuterAlt(_localctx, 2);
+					{
+						setState(212); match(T__2);
+						setState(213); expr3();
+					}
+					break;
+				case KWISVOID:
+					enterOuterAlt(_localctx, 3);
+					{
+						setState(214); match(KWISVOID);
+						setState(215); expr3();
+					}
+					break;
+				default:
+					throw new NoViableAltException(this);
 			}
 		}
 		catch (RecognitionException re) {
@@ -839,7 +816,6 @@ public class SemanticParser extends Parser {
 		}
 		return _localctx;
 	}
-
 	public static class Expr4Context extends ParserRuleContext {
 		public Expr4pContext expr4p() {
 			return getRuleContext(Expr4pContext.class,0);
@@ -852,23 +828,22 @@ public class SemanticParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_expr4; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr4(this);
-		}
+			public void enterRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr4(this);
+			}
 		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr4(this);
-		}
+			public void exitRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr4(this);
+			}
 	}
-
 	public final Expr4Context expr4() throws RecognitionException {
 		Expr4Context _localctx = new Expr4Context(_ctx, getState());
 		enterRule(_localctx, 16, RULE_expr4);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(218); expr3();
-			setState(219); expr4p();
+				setState(218); expr3();
+				setState(219); expr4p();
 			}
 		}
 		catch (RecognitionException re) {
@@ -881,7 +856,6 @@ public class SemanticParser extends Parser {
 		}
 		return _localctx;
 	}
-
 	public static class Expr4pContext extends ParserRuleContext {
 		public Expr4pContext expr4p() {
 			return getRuleContext(Expr4pContext.class,0);
@@ -894,42 +868,41 @@ public class SemanticParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_expr4p; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr4p(this);
-		}
+			public void enterRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr4p(this);
+			}
 		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr4p(this);
-		}
+			public void exitRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr4p(this);
+			}
 	}
-
 	public final Expr4pContext expr4p() throws RecognitionException {
 		Expr4pContext _localctx = new Expr4pContext(_ctx, getState());
 		enterRule(_localctx, 18, RULE_expr4p);
 		try {
 			setState(230);
 			switch ( getInterpreter().adaptivePredict(_input,21,_ctx) ) {
-			case 1:
-				enterOuterAlt(_localctx, 1);
-				{
-				setState(221); match(T__3);
-				setState(222); expr3();
-				setState(223); expr4p();
-				}
-				break;
-			case 2:
-				enterOuterAlt(_localctx, 2);
-				{
-				setState(225); match(T__12);
-				setState(226); expr3();
-				setState(227); expr4p();
-				}
-				break;
-			case 3:
-				enterOuterAlt(_localctx, 3);
-				{
-				}
-				break;
+				case 1:
+					enterOuterAlt(_localctx, 1);
+					{
+						setState(221); match(T__3);
+						setState(222); expr3();
+						setState(223); expr4p();
+					}
+					break;
+				case 2:
+					enterOuterAlt(_localctx, 2);
+					{
+						setState(225); match(T__12);
+						setState(226); expr3();
+						setState(227); expr4p();
+					}
+					break;
+				case 3:
+					enterOuterAlt(_localctx, 3);
+					{
+					}
+					break;
 			}
 		}
 		catch (RecognitionException re) {
@@ -942,7 +915,6 @@ public class SemanticParser extends Parser {
 		}
 		return _localctx;
 	}
-
 	public static class Expr5Context extends ParserRuleContext {
 		public Expr5pContext expr5p() {
 			return getRuleContext(Expr5pContext.class,0);
@@ -955,23 +927,22 @@ public class SemanticParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_expr5; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr5(this);
-		}
+			public void enterRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr5(this);
+			}
 		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr5(this);
-		}
+			public void exitRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr5(this);
+			}
 	}
-
 	public final Expr5Context expr5() throws RecognitionException {
 		Expr5Context _localctx = new Expr5Context(_ctx, getState());
 		enterRule(_localctx, 20, RULE_expr5);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(232); expr4();
-			setState(233); expr5p();
+				setState(232); expr4();
+				setState(233); expr5p();
 			}
 		}
 		catch (RecognitionException re) {
@@ -984,7 +955,6 @@ public class SemanticParser extends Parser {
 		}
 		return _localctx;
 	}
-
 	public static class Expr5pContext extends ParserRuleContext {
 		public Expr5pContext expr5p() {
 			return getRuleContext(Expr5pContext.class,0);
@@ -997,42 +967,41 @@ public class SemanticParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_expr5p; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr5p(this);
-		}
+			public void enterRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr5p(this);
+			}
 		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr5p(this);
-		}
+			public void exitRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr5p(this);
+			}
 	}
-
 	public final Expr5pContext expr5p() throws RecognitionException {
 		Expr5pContext _localctx = new Expr5pContext(_ctx, getState());
 		enterRule(_localctx, 22, RULE_expr5p);
 		try {
 			setState(244);
 			switch ( getInterpreter().adaptivePredict(_input,22,_ctx) ) {
-			case 1:
-				enterOuterAlt(_localctx, 1);
-				{
-				setState(235); match(T__14);
-				setState(236); expr4();
-				setState(237); expr5p();
-				}
-				break;
-			case 2:
-				enterOuterAlt(_localctx, 2);
-				{
-				setState(239); match(T__13);
-				setState(240); expr4();
-				setState(241); expr5p();
-				}
-				break;
-			case 3:
-				enterOuterAlt(_localctx, 3);
-				{
-				}
-				break;
+				case 1:
+					enterOuterAlt(_localctx, 1);
+					{
+						setState(235); match(T__14);
+						setState(236); expr4();
+						setState(237); expr5p();
+					}
+					break;
+				case 2:
+					enterOuterAlt(_localctx, 2);
+					{
+						setState(239); match(T__13);
+						setState(240); expr4();
+						setState(241); expr5p();
+					}
+					break;
+				case 3:
+					enterOuterAlt(_localctx, 3);
+					{
+					}
+					break;
 			}
 		}
 		catch (RecognitionException re) {
@@ -1045,7 +1014,6 @@ public class SemanticParser extends Parser {
 		}
 		return _localctx;
 	}
-
 	public static class Expr6Context extends ParserRuleContext {
 		public Expr5Context expr5() {
 			return getRuleContext(Expr5Context.class,0);
@@ -1058,23 +1026,22 @@ public class SemanticParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_expr6; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr6(this);
-		}
+			public void enterRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr6(this);
+			}
 		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr6(this);
-		}
+			public void exitRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr6(this);
+			}
 	}
-
 	public final Expr6Context expr6() throws RecognitionException {
 		Expr6Context _localctx = new Expr6Context(_ctx, getState());
 		enterRule(_localctx, 24, RULE_expr6);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(246); expr5();
-			setState(247); expr6p();
+				setState(246); expr5();
+				setState(247); expr6p();
 			}
 		}
 		catch (RecognitionException re) {
@@ -1087,7 +1054,6 @@ public class SemanticParser extends Parser {
 		}
 		return _localctx;
 	}
-
 	public static class Expr6pContext extends ParserRuleContext {
 		public Expr5Context expr5() {
 			return getRuleContext(Expr5Context.class,0);
@@ -1100,50 +1066,49 @@ public class SemanticParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_expr6p; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr6p(this);
-		}
+			public void enterRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr6p(this);
+			}
 		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr6p(this);
-		}
+			public void exitRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr6p(this);
+			}
 	}
-
 	public final Expr6pContext expr6p() throws RecognitionException {
 		Expr6pContext _localctx = new Expr6pContext(_ctx, getState());
 		enterRule(_localctx, 26, RULE_expr6p);
 		try {
 			setState(262);
 			switch ( getInterpreter().adaptivePredict(_input,23,_ctx) ) {
-			case 1:
-				enterOuterAlt(_localctx, 1);
-				{
-				setState(249); match(T__8);
-				setState(250); expr5();
-				setState(251); expr6p();
-				}
-				break;
-			case 2:
-				enterOuterAlt(_localctx, 2);
-				{
-				setState(253); match(T__5);
-				setState(254); expr5();
-				setState(255); expr6p();
-				}
-				break;
-			case 3:
-				enterOuterAlt(_localctx, 3);
-				{
-				setState(257); match(T__7);
-				setState(258); expr5();
-				setState(259); expr6p();
-				}
-				break;
-			case 4:
-				enterOuterAlt(_localctx, 4);
-				{
-				}
-				break;
+				case 1:
+					enterOuterAlt(_localctx, 1);
+					{
+						setState(249); match(T__8);
+						setState(250); expr5();
+						setState(251); expr6p();
+					}
+					break;
+				case 2:
+					enterOuterAlt(_localctx, 2);
+					{
+						setState(253); match(T__5);
+						setState(254); expr5();
+						setState(255); expr6p();
+					}
+					break;
+				case 3:
+					enterOuterAlt(_localctx, 3);
+					{
+						setState(257); match(T__7);
+						setState(258); expr5();
+						setState(259); expr6p();
+					}
+					break;
+				case 4:
+					enterOuterAlt(_localctx, 4);
+					{
+					}
+					break;
 			}
 		}
 		catch (RecognitionException re) {
@@ -1156,7 +1121,6 @@ public class SemanticParser extends Parser {
 		}
 		return _localctx;
 	}
-
 	public static class ExprContext extends ParserRuleContext {
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
@@ -1170,51 +1134,50 @@ public class SemanticParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_expr; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr(this);
-		}
+			public void enterRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterExpr(this);
+			}
 		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr(this);
-		}
+			public void exitRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr(this);
+			}
 	}
-
 	public final ExprContext expr() throws RecognitionException {
 		ExprContext _localctx = new ExprContext(_ctx, getState());
 		enterRule(_localctx, 28, RULE_expr);
 		try {
 			setState(267);
 			switch (_input.LA(1)) {
-			case T__14:
-			case T__13:
-			case T__9:
-			case T__4:
-			case T__2:
-			case KWIF:
-			case KWISVOID:
-			case KWLET:
-			case KWWHILE:
-			case KWCASE:
-			case KWNEW:
-			case KWTRUE:
-			case KWFALSE:
-			case OID:
-			case INT:
-			case STR:
-				enterOuterAlt(_localctx, 1);
-				{
-				setState(264); expr6();
-				}
-				break;
-			case KWNOT:
-				enterOuterAlt(_localctx, 2);
-				{
-				setState(265); match(KWNOT);
-				setState(266); expr();
-				}
-				break;
-			default:
-				throw new NoViableAltException(this);
+				case T__14:
+				case T__13:
+				case T__9:
+				case T__4:
+				case T__2:
+				case KWIF:
+				case KWISVOID:
+				case KWLET:
+				case KWWHILE:
+				case KWCASE:
+				case KWNEW:
+				case KWTRUE:
+				case KWFALSE:
+				case OID:
+				case INT:
+				case STR:
+					enterOuterAlt(_localctx, 1);
+					{
+						setState(264); expr6();
+					}
+					break;
+				case KWNOT:
+					enterOuterAlt(_localctx, 2);
+					{
+						setState(265); match(KWNOT);
+						setState(266); expr();
+					}
+					break;
+				default:
+					throw new NoViableAltException(this);
 			}
 		}
 		catch (RecognitionException re) {
@@ -1227,7 +1190,6 @@ public class SemanticParser extends Parser {
 		}
 		return _localctx;
 	}
-
 	public static class CommentContext extends ParserRuleContext {
 		public TerminalNode LINECOMMENT() { return getToken(SemanticParser.LINECOMMENT, 0); }
 		public TerminalNode MULTICOMMENT() { return getToken(SemanticParser.MULTICOMMENT, 0); }
@@ -1236,15 +1198,14 @@ public class SemanticParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_comment; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterComment(this);
-		}
+			public void enterRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterComment(this);
+			}
 		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitComment(this);
-		}
+			public void exitRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitComment(this);
+			}
 	}
-
 	public final CommentContext comment() throws RecognitionException {
 		CommentContext _localctx = new CommentContext(_ctx, getState());
 		enterRule(_localctx, 30, RULE_comment);
@@ -1252,12 +1213,12 @@ public class SemanticParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(269);
-			_la = _input.LA(1);
-			if ( !(_la==LINECOMMENT || _la==MULTICOMMENT) ) {
-			_errHandler.recoverInline(this);
-			}
-			consume();
+				setState(269);
+				_la = _input.LA(1);
+				if ( !(_la==LINECOMMENT || _la==MULTICOMMENT) ) {
+					_errHandler.recoverInline(this);
+				}
+				consume();
 			}
 		}
 		catch (RecognitionException re) {
@@ -1270,7 +1231,6 @@ public class SemanticParser extends Parser {
 		}
 		return _localctx;
 	}
-
 	public static class StringContext extends ParserRuleContext {
 		public TerminalNode STR() { return getToken(SemanticParser.STR, 0); }
 		public StringContext(ParserRuleContext parent, int invokingState) {
@@ -1278,22 +1238,21 @@ public class SemanticParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_string; }
 		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterString(this);
-		}
+			public void enterRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).enterString(this);
+			}
 		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitString(this);
-		}
+			public void exitRule(ParseTreeListener listener) {
+				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitString(this);
+			}
 	}
-
 	public final StringContext string() throws RecognitionException {
 		StringContext _localctx = new StringContext(_ctx, getState());
 		enterRule(_localctx, 32, RULE_string);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(271); match(STR);
+				setState(271); match(STR);
 			}
 		}
 		catch (RecognitionException re) {
@@ -1306,7 +1265,6 @@ public class SemanticParser extends Parser {
 		}
 		return _localctx;
 	}
-
 	public static final String _serializedATN =
 		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\60\u0114\4\2\t\2"+
 		"\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13"+

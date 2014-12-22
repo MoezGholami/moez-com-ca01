@@ -1,1 +1,9 @@
-1: install official cool compiler
+ install official cool compiler
+2: SELF_TYPE -> used to refere to self type varialbe
+3: SELF_TYpE -> as the return type of a method, decleared type of a let, decleared type of an attribute => page 7
+3: IO
+4: All methods shall be included from the inherited class
+5: 4 Basic classes: Int, String, Bool, IO => page 
+7: static types and dynamic types => page 7 
+8: handle keywords from object and type identifier
+9: evaluating the 'let' expr - order of defined variables

@@ -14,6 +14,8 @@ public class SemanticParser extends Parser {
 	static { RuntimeMetaData.checkVersion("4.4", RuntimeMetaData.VERSION); }
 
 	AnalizerSemantic semAnalizer = AnalizerSemantic.getInstance();
+	String CurClassName = null, CurrMethodName=null, CurrVarName=null, CurrMethodTypeName=null, CurrVarTypeName=null;
+	ArrayList<AnalizerSemantic.UnrecognizedTypeVar> VarList;
 	
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
@@ -156,9 +158,10 @@ public class SemanticParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			String Cname = null,Pname=null;
+			//new class detected
+			String Pname=null;
 			setState(42); match(KWCLASS);
-			setState(43); Cname = match(TID).getText();
+			setState(43); CurClassName = match(TID).getText();
 			setState(46);
 			
 			_la = _input.LA(1);
@@ -168,11 +171,7 @@ public class SemanticParser extends Parser {
 				setState(45); Pname = match(TID).getText();
 				}
 			}
-			try {
-				semAnalizer.addClass(Cname, Pname);
-			} catch (AnalizerSemantic.SemanticError e) {
-				System.err.printf(e.toString());
-			}
+			semAnalizer.addClass(CurClassName, Pname);
 			setState(48); match(T__4);
 			setState(54);
 			_errHandler.sync(this);
@@ -195,6 +194,9 @@ public class SemanticParser extends Parser {
 			_localctx.exception = re;
 			_errHandler.reportError(this, re);
 			_errHandler.recover(this, re);
+		}
+		catch (AnalizerSemantic.SemanticError e) {
+			System.err.printf(e.toString());
 		}
 		finally {
 			exitRule();
@@ -239,7 +241,8 @@ public class SemanticParser extends Parser {
 				enterOuterAlt(_localctx, 1);
 				{
 				//method detected
-				setState(59); match(OID);
+				VarList=new ArrayList<AnalizerSemantic.UnrecognizedTypeVar>();
+				setState(59); CurrMethodName=match(OID).getText();
 				setState(60); match(T__9);
 				setState(69);
 				_la = _input.LA(1);
@@ -265,7 +268,8 @@ public class SemanticParser extends Parser {
 
 				setState(71); match(T__16);
 				setState(72); match(T__10);
-				setState(73); match(TID);
+				setState(73); CurrMethodTypeName=match(TID).getText();
+				semAnalizer.addMethod(CurClassName, CurrMethodName, CurrMethodTypeName, VarList);
 				setState(74); match(T__4);
 				setState(75); expr();
 				setState(76); match(T__1);
@@ -275,9 +279,10 @@ public class SemanticParser extends Parser {
 				enterOuterAlt(_localctx, 2);
 				{
 				//field detected
-				setState(78); match(OID);
+				setState(78); CurrVarTypeName=match(OID).getText();
 				setState(79); match(T__10);
-				setState(80); match(TID);
+				setState(80); CurrVarTypeName=match(TID).getText();
+				semAnalizer.addField(CurClassName, new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName));
 				setState(83);
 				_la = _input.LA(1);
 				if (_la==T__0) {
@@ -295,6 +300,10 @@ public class SemanticParser extends Parser {
 			_localctx.exception = re;
 			_errHandler.reportError(this, re);
 			_errHandler.recover(this, re);
+		} catch (AnalizerSemantic.DuplicateVariableName e) {
+			System.err.println(e.toString());
+		} catch (AnalizerSemantic.DuplicateMethodName e) {
+			System.err.println(e.toString());
 		}
 		finally {
 			exitRule();
@@ -325,10 +334,11 @@ public class SemanticParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(87); match(OID);
+			setState(87); CurrVarName=match(OID).getText();
 			setState(88); match(T__10);
-			setState(89); match(TID);
+			setState(89); CurrVarTypeName=match(TID).getText();
 			}
+			VarList.add(new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName));
 		}
 		catch (RecognitionException re) {
 			_localctx.exception = re;

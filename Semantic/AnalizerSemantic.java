@@ -120,7 +120,11 @@ public class AnalizerSemantic {
 		}
 		ScopeKey.remove(ScopeKey.size()-2);
 	}
-
+	
+	public void typeCheck(){
+		
+	}
+	
 	public void commitFirstPass()
 			throws NoMainException, DanglingClassException, DuplicateMethodName, FirstPassUnsuccessful
 	{
@@ -137,7 +141,12 @@ public class AnalizerSemantic {
 		PassedTimes=1;
 	}
 	
-
+	public Scope getScopeByMethod(Method m, ArrayList<Integer> key){
+		if(m==null || key==null || key.size()==0)
+			return null;
+		return getScopeInScope(m.MainScope, key);
+	}
+	
 	private Scope getScopeInMethod(Method m, ArrayList<Integer> key)
 	{
 		if(m==null || key==null || key.size()==0)
@@ -276,6 +285,16 @@ public class AnalizerSemantic {
 		return result;
 	}
 
+	//siaxace
+	public Variable getVariableFromScope(String n,Scope s){
+		if(s==null)
+			return null;
+		for(int i=0;i<s.VarList.size();i++)
+			if(s.VarList.get(i).Name.equals(n))
+				return s.VarList.get(i);
+		return getVariableFromScope(n,s.Parent);
+	}
+	
 	private Variable findVariableByName(String n,ArrayList<Variable> list){
 		for(int i=0;i<list.size();i++)
 			if(list.get(i).Name.equals(n))

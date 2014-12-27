@@ -11,9 +11,10 @@ import java.util.ArrayList;
 public class SemanticParser extends Parser {
 	static { RuntimeMetaData.checkVersion("4.4", RuntimeMetaData.VERSION); }
 	AnalizerSemantic semAnalizer = AnalizerSemantic.getInstance();
-	String CurClassName = null, CurrMethodName=null, CurrVarName=null, CurrMethodTypeName=null, CurrVarTypeName=null;
+	String CurClassName = null, CurrMethodName=null, CurrVarName=null, CurrMethodTypeName=null, CurrVarTypeName=null,ExprRetType=null,CurrOID=null;
 	ArrayList<AnalizerSemantic.UnrecognizedTypeVar> VarList;
 	ArrayList<Integer> CurrScopeKey;
+	ArrayList< AnalizerSemantic.UnrecognizedTypeVar > CurrLetScopeVar;
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
@@ -415,11 +416,13 @@ public class SemanticParser extends Parser {
 					enterOuterAlt(_localctx, 3);
 					{
 						//new Scope detected (let)
+						CurrLetScopeVar = new ArrayList<AnalizerSemantic.UnrecognizedTypeVar>();
 						semAnalizer.addScope(CurClassName, CurrMethodName, CurrScopeKey);
 						setState(105); match(KWLET);
 						setState(106); CurrVarName=match(OID).getText();
 						setState(107); match(T__10);
 						setState(108); CurrVarTypeName=match(TID).getText();
+						CurrLetScopeVar.add(new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName));
 						setState(111);
 						semAnalizer.addVariable2Scope(CurClassName, CurrMethodName, CurrScopeKey,new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName) );
 						_la = _input.LA(1);
@@ -548,9 +551,12 @@ public class SemanticParser extends Parser {
 				case 8:
 					enterOuterAlt(_localctx, 8);
 					{
-						setState(171); match(OID);
+						// Assignment <-
+						
+						setState(171); CurrOID= match(OID).getText();
 						setState(172); match(T__0);
-						setState(173); expr();
+						setState(173); ExprRetType = expr().TypeName;
+						//semAnalizer.typeCheck(ExprRetType,semAnalizer.getVariableFromScope(ExprRetType,semAnalizer.getScopeByMethod(semAnalizer.get, key)));
 					}
 					break;
 				case 9:
@@ -1122,6 +1128,7 @@ public class SemanticParser extends Parser {
 		return _localctx;
 	}
 	public static class ExprContext extends ParserRuleContext {
+		public String TypeName;
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
 		}

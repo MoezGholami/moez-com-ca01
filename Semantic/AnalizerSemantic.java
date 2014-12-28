@@ -46,7 +46,7 @@ public class AnalizerSemantic {
 			return;
 		}
 		CoolClass incomming = new CoolClass(Cname,getPossibleClass(Pname));
-		if (hasLoopWith(incomming.Ancestor, incomming.name))
+		if (CoolClass.hasLoopWith(incomming.Ancestor, incomming.name))
 			throw new LoopException(incomming.name, this);
 		classList.add(incomming);
 	}
@@ -128,10 +128,33 @@ public class AnalizerSemantic {
 		s.VarList.add(inComingVariable);
 	}
 
+	public ArrayList<Integer> generateNewMainScopeKey_AfterPass0()
+	{
+		if(PassedTimes==0)
+			return null;
+		Method temp=new Method(null, null, null, null);
+		return (new ArrayList<Integer>(temp.MainScope.ScopeKey));
+	}
+
+	public void updateKeyWhenOpeningScope(String ownerClassName, String motherMethodName, ArrayList<Integer> currentScopeKey)
+	{
+		if(PassedTimes==0)
+			return ;
+
+		assert !isKeyWord(ownerClassName);
+		assert !isKeyWord(motherMethodName);
+		CoolClass owner=findCoolClassByName(ownerClassName, classList);
+		assert owner!=null;
+		Method mother=findMethodByName(motherMethodName, owner.MethodList);
+		assert mother!=null;
+		Scope parent=getScopeInMethod(mother, currentScopeKey);
+		assert parent!=null;
+
+		currentScopeKey.add(currentScopeKey.size()-1, element);//TODO: FINISH THIS
+	}
+
 	public void updateKeyWhenClosingScope(ArrayList<Integer> ScopeKey)
 	{
-		if(PassedTimes!=0)
-			return ;
 		assert !(ScopeKey==null || ScopeKey.size()==0);
 		if(ScopeKey.size()==1)//Main scope is closing
 		{
@@ -157,6 +180,51 @@ public class AnalizerSemantic {
 		if(SemanticErrorFound)
 			throw new FirstPassUnsuccessful(this);
 		PassedTimes=1;
+	}
+
+	public String joinOf_TypeName(String typename1, String typename2)
+	{
+		CoolClass a=findCoolClassByName(typename1, classList);
+		CoolClass b=findCoolClassByName(typename2, classList);
+		assert a!=null;
+		assert b!=null;
+		return CoolClass.FirstCommonFatherClass(a, b).name;
+	}
+
+	public String joinOf_TypeName(ArrayList<String> types)
+	{
+		if(types==null || types.size()==0)
+			return null;
+		String result=types.get(0);
+		for(int i=1; i<types.size(); ++i)
+			result=joinOf_TypeName(result, types.get(i));
+		return result;
+	}
+
+	public String LookUpVarType(String ownerClassName, String motherMethodName, ArrayList<Integer> currentScopeKey,
+			String searchingID) throws UndefinedVar
+	{
+		CoolClass owner=findCoolClassByName(ownerClassName, classList);
+		assert owner!=null;
+		Method mother=findMethodByName(motherMethodName, owner.MethodList);
+		assert mother!=null;
+		Scope s=getScopeInMethod(mother, currentScopeKey);
+		assert s!=null;
+
+		String result=null;
+		Variable var;
+
+		result=searchVarTypeInScope(searchingID, s);
+		if(result!=null)
+			return result;
+		var=findVariableByName(searchingID, mother.args);
+		if(var!=null)
+			return var.Type.name;
+		var=findVariableByName(searchingID, owner.Fields);
+		if(var!=null)
+			return var.Type.name;
+
+		throw new UndefinedVar(searchingID, this);
 	}
 	
 	public Scope getScopeByMethod(Method m, ArrayList<Integer> key){
@@ -212,7 +280,7 @@ public class AnalizerSemantic {
 		} catch (KeyWordName e) {
 			assert false;
 		}
-		if (hasLoopWith(migrating.Ancestor, migrating.name))
+		if (CoolClass.hasLoopWith(migrating.Ancestor, migrating.name))
 			throw new LoopException(migrating.name, this);
 		classList.add(migrating);
 	}
@@ -232,14 +300,6 @@ public class AnalizerSemantic {
 			return findCoolClassByName(cname, classList);
 		addExpectingClass(cname);
 		return findCoolClassByName(cname, expectingClassList);
-	}
-
-	private boolean hasLoopWith(CoolClass c, String Cname) {
-		if (c == null)
-			return false;
-		if (c.name == Cname)
-			return true;
-		return hasLoopWith(c.Ancestor, Cname);
 	}
 
 	private CoolClass findCoolClassByName(String n, ArrayList<CoolClass> list) {
@@ -345,6 +405,16 @@ public class AnalizerSemantic {
 		clist.add(CoolClass.coolBool);
 		clist.add(CoolClass.coolString);
 		clist.add(CoolClass.coolIO);
+	}
+
+	private String searchVarTypeInScope(String varName, Scope s)
+	{
+		if(s==null)
+			return null;
+		Variable v=findVariableByName(varName,s.VarList);
+		if(v!=null)
+			return v.Type.name;
+		return searchVarTypeInScope(varName, s.Parent);
 	}
 
 	private static boolean isKeyWord(String s)
@@ -466,13 +536,39 @@ public class AnalizerSemantic {
 			Fields= new ArrayList<Variable>();
 		}
 		public String toString()	{ return name; }
+		public static CoolClass FirstCommonFatherClass(CoolClass a, CoolClass b)
+		{
+			assert !(a==null || b==null);
+
+			if(a==b)
+				return a;
+			if(a.someFatherOf(b))
+				return a;
+			if(b.someFatherOf(a))
+				return b;
+			return FirstCommonFatherClass(a.Ancestor, b);
+		}
+		public static boolean hasLoopWith(CoolClass c, String Cname) {
+			if (c == null)
+				return false;
+			if (c.name == Cname)
+				return true;
+			return hasLoopWith(c.Ancestor, Cname);
+		}
+		public boolean someFatherOf(CoolClass c)//father is not brother!!!
+		{
+			if(c==coolObject)
+				return false;
+			if(this==c.Ancestor)
+				return true;
+			return someFatherOf(c.Ancestor);
+		}
 	}
 
 	public static abstract class SemanticError extends Throwable {
 		public static final long serialVersionUID = 100L;
 		public SemanticError(AnalizerSemantic as)	{ as.SemanticErrorFound=true; }
 	}
-
 	public static class LoopException extends SemanticError{
 		public static final long serialVersionUID = 101L;
 		private String className;
@@ -484,7 +580,6 @@ public class AnalizerSemantic {
 			return "The following class caused a loop: "+className+"\n";
 		}
 	}
-	
 	public static class DuplicateClassX extends SemanticError{
 		public static final long serialVersionUID = 102L;
 		private String className;
@@ -497,7 +592,6 @@ public class AnalizerSemantic {
 			return "The following class was already decleared : "+className+"\n";
 		}
 	}
-	
 	public static class DanglingClassException extends SemanticError{
 		public static final long serialVersionUID = 103L;
 		ArrayList<CoolClass> list;
@@ -514,13 +608,11 @@ public class AnalizerSemantic {
 			return result;
 		}
 	}
-	
 	public static class NoMainException extends SemanticError{
 		public static final long serialVersionUID = 104L;
 		public NoMainException(AnalizerSemantic as)	{ super(as); }
 		public String toString()	{ return "No Main class was found.\n"; }
 	}
-
 	public static class DuplicateVariableName extends SemanticError
 	{
 		public static final long serialVersionUID = 105L;
@@ -535,19 +627,18 @@ public class AnalizerSemantic {
 			return ("A variable with name "+dupname+" was already declared in this scope.");
 		}
 	}
-
 	public static class DuplicateMethodName extends SemanticError
 	{
 		public static final long serialVersionUID = 106L;
-		String dupMethodName;
+		String DupMethodName;
 		public DuplicateMethodName(String n, AnalizerSemantic as)
 		{
 			super(as);
-			dupMethodName=n;
+			DupMethodName=n;
 		}
 		public String toString()
 		{
-			return ("redefinition of method with name: "+dupMethodName+" . not override.");
+			return ("redefinition of method with name: "+DupMethodName+" . not override.");
 		}
 	}
 	public static class KeyWordName extends SemanticError
@@ -572,5 +663,19 @@ public class AnalizerSemantic {
 			super(as);
 		}
 		public String toString()	{return "First commit unsuccessfull because of the mentioned errors.";}
+	}
+	public static class UndefinedVar extends SemanticError
+	{
+		public static final long serialVersionUID = 109L;
+		String UndefinedID;
+		public UndefinedVar(String varName, AnalizerSemantic as)
+		{
+			super(as);
+			UndefinedID=varName;
+		}
+		public String toString()
+		{
+			return ("The variable with name: "+UndefinedID+" has not been declared in this scope.");
+		}
 	}
 }

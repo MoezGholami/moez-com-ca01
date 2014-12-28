@@ -7,3 +7,5 @@ print location of error
 IO, OBJect,... methods and fields
 self
 cannot define with self
+
+MOSTAHAB: convert arraylists to hashmap

@@ -474,14 +474,16 @@ public class SemanticParser extends Parser {
 						setState(130); match(KWOF);
 						setState(138);
 						_errHandler.sync(this);
+						semAnalizer.addScope(CurClassName, CurrMethodName, CurrScopeKey);
 						_la = _input.LA(1);
 						do {
 							{
 								{
-									setState(131); match(OID);
+									setState(131); CurrVarName=match(OID).getText();
 									setState(132); match(T__10);
-									setState(133); match(TID);
+									setState(133); CurrVarTypeName=match(TID).getText();
 									setState(134); match(T__17);
+									semAnalizer.addVariable2Scope(CurClassName, CurrMethodName, CurrScopeKey,new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName) );
 									setState(135); expr();
 									setState(136); match(T__6);
 								}
@@ -491,6 +493,7 @@ public class SemanticParser extends Parser {
 							_la = _input.LA(1);
 						} while ( _la==OID );
 						setState(142); match(KWESAC);
+						semAnalizer.updateKeyWhenClosingScope(CurrScopeKey);
 					}
 					break;
 				case 5:

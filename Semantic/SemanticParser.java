@@ -4,17 +4,19 @@ import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.misc.*;
 import org.antlr.v4.runtime.tree.*;
+
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
 public class SemanticParser extends Parser {
 	static { RuntimeMetaData.checkVersion("4.4", RuntimeMetaData.VERSION); }
+
 	AnalizerSemantic semAnalizer = AnalizerSemantic.getInstance();
-	String CurClassName = null, CurrMethodName=null, CurrVarName=null, CurrMethodTypeName=null, CurrVarTypeName=null,ExprRetType=null,CurrOID=null;
+	String CurClassName = null, CurrMethodName=null, CurrVarName=null, CurrMethodTypeName=null, CurrVarTypeName=null;
 	ArrayList<AnalizerSemantic.UnrecognizedTypeVar> VarList;
 	ArrayList<Integer> CurrScopeKey;
-	ArrayList< AnalizerSemantic.UnrecognizedTypeVar > CurrLetScopeVar;
+
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
@@ -100,9 +102,6 @@ public class SemanticParser extends Parser {
 					_la = _input.LA(1);
 				} while ( _la==KWCLASS );
 			}
-			semAnalizer.addClass("Int", "Object");
-			semAnalizer.addClass("String", "Object");
-			semAnalizer.addClass("IO","Object");
 			semAnalizer.commitFirstPass();
 		}
 		catch (RecognitionException re) {
@@ -292,6 +291,8 @@ public class SemanticParser extends Parser {
 			System.err.println(e.toString());
 		} catch (AnalizerSemantic.DuplicateMethodName e) {
 			System.err.println(e.toString());
+		} catch (AnalizerSemantic.KeyWordName e) {
+			System.err.println(e.toString());
 		}
 		finally {
 			exitRule();
@@ -416,13 +417,12 @@ public class SemanticParser extends Parser {
 					enterOuterAlt(_localctx, 3);
 					{
 						//new Scope detected (let)
-						CurrLetScopeVar = new ArrayList<AnalizerSemantic.UnrecognizedTypeVar>();
+						int NumberOfLetScopes=1;
 						semAnalizer.addScope(CurClassName, CurrMethodName, CurrScopeKey);
 						setState(105); match(KWLET);
 						setState(106); CurrVarName=match(OID).getText();
 						setState(107); match(T__10);
 						setState(108); CurrVarTypeName=match(TID).getText();
-						CurrLetScopeVar.add(new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName));
 						setState(111);
 						semAnalizer.addVariable2Scope(CurClassName, CurrMethodName, CurrScopeKey,new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName) );
 						_la = _input.LA(1);
@@ -438,6 +438,8 @@ public class SemanticParser extends Parser {
 						while (_la==T__15) {
 							{
 								{
+									semAnalizer.addScope(CurClassName, CurrMethodName, CurrScopeKey);
+									NumberOfLetScopes++;
 									setState(113); match(T__15);
 									setState(114); CurrVarName=match(OID).getText();
 									setState(115); match(T__10);
@@ -460,7 +462,8 @@ public class SemanticParser extends Parser {
 						}
 						setState(126); match(KWIN);
 						setState(127); expr();
-						semAnalizer.updateKeyWhenClosingScope(CurrScopeKey);
+						for(int i=0; i<NumberOfLetScopes; ++i)
+							semAnalizer.updateKeyWhenClosingScope(CurrScopeKey);
 					}
 					break;
 				case 4:
@@ -550,13 +553,10 @@ public class SemanticParser extends Parser {
 					break;
 				case 8:
 					enterOuterAlt(_localctx, 8);
-					{
-						// Assignment <-
-						
-						setState(171); CurrOID= match(OID).getText();
+					{	
+						setState(171); match(OID);
 						setState(172); match(T__0);
-						setState(173); ExprRetType = expr().TypeName;
-						//semAnalizer.typeCheck(ExprRetType,semAnalizer.getVariableFromScope(ExprRetType,semAnalizer.getScopeByMethod(semAnalizer.get, key)));
+						setState(173); expr();
 					}
 					break;
 				case 9:
@@ -614,6 +614,10 @@ public class SemanticParser extends Parser {
 			_localctx.exception = re;
 			_errHandler.reportError(this, re);
 			_errHandler.recover(this, re);
+		} catch (AnalizerSemantic.DuplicateVariableName e) {
+			System.err.println(e.toString());
+		} catch (AnalizerSemantic.KeyWordName e) {
+			System.err.println(e.toString());
 		}
 		finally {
 			exitRule();

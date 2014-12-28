@@ -1,3 +1,4 @@
+import java.security.KeyException;
 import java.util.ArrayList;
 
 public class AnalizerSemantic {
@@ -6,6 +7,7 @@ public class AnalizerSemantic {
 	private boolean SemanticErrorFound;
 	private int PassedTimes;
 	private static AnalizerSemantic Instance = new AnalizerSemantic();
+	private static String KeyWords[] = {"class", "else", "fi", "if", "in", "inherits", "isvoid", "let", "loop", "pool", "then", "while", "case", "esac", "new", "of", "not", "true", "false"};
 	
 	public static AnalizerSemantic getInstance() {
 		return Instance;
@@ -13,7 +15,7 @@ public class AnalizerSemantic {
 
 	private AnalizerSemantic() {
 		classList = new ArrayList<CoolClass>();
-		classList.add(CoolClass.coolObject);
+		addPrimitiveClasses(classList);
 		expectingClassList = new ArrayList<CoolClass>();
 		SemanticErrorFound=false;
 		PassedTimes=0;
@@ -23,11 +25,20 @@ public class AnalizerSemantic {
 		return hasClassWithName("Main", classList);
 	}
 
-	public void addClass(String Cname, String Pname) throws LoopException,DuplicateClassX {
+	public boolean hasSemanticError()
+	{
+		return SemanticErrorFound;
+	}
+
+	public void addClass(String Cname, String Pname) throws LoopException,DuplicateClassX, KeyWordName {
 		if(PassedTimes!=0)
 			return ;
 		if(Pname==null)
 			Pname = CoolClass.coolObject.name;
+		if(isKeyWord(Pname))
+			throw new KeyWordName(Pname, this);
+		if(isKeyWord(Cname))
+			throw new KeyWordName(Cname, this);
 		if (hasClassWithName(Cname, classList))
 			throw new DuplicateClassX(Cname, this);
 		if (hasClassWithName(Cname, expectingClassList)) {
@@ -41,25 +52,29 @@ public class AnalizerSemantic {
 	}
 
 	public ArrayList<Integer> addMethod(String OwnerClassName, String MethodName, String MethodTypeName, ArrayList<UnrecognizedTypeVar> RawArgs)
-			throws DuplicateVariableName, DuplicateMethodName
+			throws DuplicateVariableName, DuplicateMethodName, KeyWordName
 	{
 		if(PassedTimes!=0)
 			return null;
+		assert !isKeyWord(OwnerClassName);
 		assert hasClassWithName(OwnerClassName, classList);
+		if(isKeyWord(MethodName))
+			throw new KeyWordName(MethodName, this);
 		ArrayList<Variable> args=convertRawVars2Vars(RawArgs);
 		CoolClass OwnerCoolClass=getPossibleClass(OwnerClassName);
 		Method inComingMethod= new Method(MethodName, getPossibleClass(MethodTypeName), OwnerCoolClass, args);
-		if(hasMethodWithName(inComingMethod.Name, OwnerCoolClass.MethodList)  //52HERE
+		if(hasMethodWithName(inComingMethod.Name, OwnerCoolClass.MethodList)
 				|| duplicateAndNotOverrided(inComingMethod, inComingMethod.OwnerClass.Ancestor))
 			throw new DuplicateMethodName(MethodName, this);
 		OwnerCoolClass.MethodList.add(inComingMethod);
 		return inComingMethod.MainScope.ScopeKey;
 	}
 
-	public void addField(String ownerClassName, UnrecognizedTypeVar rawfield) throws DuplicateVariableName
+	public void addField(String ownerClassName, UnrecognizedTypeVar rawfield) throws DuplicateVariableName, KeyWordName
 	{
 		if(PassedTimes!=0)
 			return ;
+		assert !isKeyWord(ownerClassName);
 		assert hasClassWithName(ownerClassName, classList);
 		Variable inComingField=new Variable(rawfield, this);
 		CoolClass owner=getPossibleClass(ownerClassName);
@@ -73,6 +88,8 @@ public class AnalizerSemantic {
 		if(PassedTimes!=0)
 			return ;
 
+		assert !isKeyWord(ownerClassName);
+		assert !isKeyWord(motherMethodName);
 		CoolClass owner=findCoolClassByName(ownerClassName, classList);
 		assert owner!=null;
 		Method mother=findMethodByName(motherMethodName, owner.MethodList);
@@ -88,11 +105,13 @@ public class AnalizerSemantic {
 	}
 
 	public void addVariable2Scope(String ownerClassName, String motherMethodName,
-			ArrayList<Integer> currentScopeKey, UnrecognizedTypeVar rawfield)
+			ArrayList<Integer> currentScopeKey, UnrecognizedTypeVar rawfield) throws DuplicateVariableName, KeyWordName
 	{
 		if(PassedTimes!=0)
 			return ;
 
+		assert !isKeyWord(ownerClassName);
+		assert !isKeyWord(motherMethodName);
 		CoolClass owner=findCoolClassByName(ownerClassName, classList);
 		assert owner!=null;
 		Method mother=findMethodByName(motherMethodName, owner.MethodList);
@@ -101,6 +120,8 @@ public class AnalizerSemantic {
 		assert s!=null;
 
 		Variable inComingVariable=new Variable(rawfield, this);
+		if(hasVariableWithName(inComingVariable.Name, mother.args))
+			throw new DuplicateVariableName(inComingVariable.Name, this);
 		Variable duplicateScopeVar=findVariableByName(inComingVariable.Name, s.VarList);
 		if(duplicateScopeVar!=null)
 			s.VarList.remove(duplicateScopeVar);//see page 11, let, paragraph 3
@@ -121,15 +142,12 @@ public class AnalizerSemantic {
 		ScopeKey.remove(ScopeKey.size()-2);
 	}
 	
-	public void typeCheck(){
-		
-	}
-	
 	public void commitFirstPass()
 			throws NoMainException, DanglingClassException, DuplicateMethodName, FirstPassUnsuccessful
 	{
 		if(PassedTimes!=0)
 			return ;
+	
 		if(!hasMain())
 			throw new NoMainException(this);
 		if(expectingClassList.size()!=0)
@@ -189,7 +207,11 @@ public class AnalizerSemantic {
 	private void migrate2ClassList(String Cname, String Pname) throws LoopException {
 		CoolClass migrating = findCoolClassByName(Cname, expectingClassList);
 		expectingClassList.remove(migrating);
-		migrating.Ancestor = getPossibleClass(Pname);
+		try {
+			migrating.Ancestor = getPossibleClass(Pname);
+		} catch (KeyWordName e) {
+			assert false;
+		}
 		if (hasLoopWith(migrating.Ancestor, migrating.name))
 			throw new LoopException(migrating.name, this);
 		classList.add(migrating);
@@ -202,8 +224,10 @@ public class AnalizerSemantic {
 		expectingClassList.add(new CoolClass(Cname, null));
 	}
 
-	private CoolClass getPossibleClass(String cname)
+	private CoolClass getPossibleClass(String cname) throws KeyWordName
 	{
+		if(isKeyWord(cname))
+			throw new KeyWordName(cname, this);
 		if(hasClassWithName(cname, classList))
 			return findCoolClassByName(cname, classList);
 		addExpectingClass(cname);
@@ -274,7 +298,7 @@ public class AnalizerSemantic {
 	}
 
 	private ArrayList<Variable> convertRawVars2Vars(ArrayList<UnrecognizedTypeVar> rawVars)
-		throws DuplicateVariableName
+		throws DuplicateVariableName, KeyWordName
 	{
 		ArrayList<Variable> result=new ArrayList<Variable>();
 		for(int i=0; i<rawVars.size(); ++i)
@@ -285,7 +309,6 @@ public class AnalizerSemantic {
 		return result;
 	}
 
-	//siaxace
 	public Variable getVariableFromScope(String n,Scope s){
 		if(s==null)
 			return null;
@@ -315,6 +338,29 @@ public class AnalizerSemantic {
 		return hasFieldOrInherited(vname, c.Ancestor);
 	}
 
+	private void addPrimitiveClasses(ArrayList<CoolClass> clist)
+	{
+		clist.add(CoolClass.coolObject);
+		clist.add(CoolClass.coolInt);
+		clist.add(CoolClass.coolBool);
+		clist.add(CoolClass.coolString);
+		clist.add(CoolClass.coolIO);
+	}
+
+	private static boolean isKeyWord(String s)
+	{
+		if(s==null)
+			return false;
+		String sl=s.toLowerCase();
+		if(sl.equals("true") || sl.equals("false"))
+			if(s.charAt(0)=='T' || s.charAt(0)=='F')
+				return false;
+		for(int i=0; i<KeyWords.length; ++i)
+			if(sl.equals(KeyWords[i].toLowerCase()))
+				return true;
+		return false;
+	}
+	
 	public static class UnrecognizedTypeVar
 	{
 		String Name;
@@ -331,8 +377,10 @@ public class AnalizerSemantic {
 			Name=n;
 			Type=t;
 		}
-		public Variable(UnrecognizedTypeVar rv, AnalizerSemantic as)
+		public Variable(UnrecognizedTypeVar rv, AnalizerSemantic as) throws KeyWordName
 		{
+			if(AnalizerSemantic.isKeyWord(rv.Name))
+				throw new KeyWordName(rv.Name, as);
 			Name=rv.Name;
 			Type=as.getPossibleClass(rv.TypeName);
 		}
@@ -396,7 +444,12 @@ public class AnalizerSemantic {
 		public ArrayList<Method> MethodList;
 		public ArrayList<Variable> Fields;
 		
-		public static final CoolClass coolObject = new CoolClass("Object");
+		public static final CoolClass coolObject	= new CoolClass("Object");
+		public static final CoolClass coolInt		= new CoolClass("Int", coolObject);
+		public static final CoolClass coolString	= new CoolClass("String", coolObject);
+		public static final CoolClass coolBool		= new CoolClass("Bool", coolObject);
+		public static final CoolClass coolIO		= new CoolClass("IO", coolObject);
+	
 		private CoolClass(String n){
 			Ancestor = null;
 			name = n;
@@ -497,9 +550,23 @@ public class AnalizerSemantic {
 			return ("redefinition of method with name: "+dupMethodName+" . not override.");
 		}
 	}
-	public static class FirstPassUnsuccessful extends SemanticError
+	public static class KeyWordName extends SemanticError
 	{
 		public static final long serialVersionUID = 107L;
+		String InvalidName;
+		public KeyWordName(String n, AnalizerSemantic as)
+		{
+			super(as);
+			InvalidName=n;
+		}
+		public String toString()
+		{
+			return ("The name: "+InvalidName+" is a keyword.");
+		}
+	}
+	public static class FirstPassUnsuccessful extends SemanticError
+	{
+		public static final long serialVersionUID = 108L;
 		public FirstPassUnsuccessful(AnalizerSemantic as)
 		{
 			super(as);

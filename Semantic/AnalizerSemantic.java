@@ -295,7 +295,7 @@ public class AnalizerSemantic {
 			return "Bool";
 		}
 			
-		return "FUCK";
+		return "F";
 }
 
 	

@@ -240,6 +240,41 @@ public class AnalizerSemantic {
 		throw new UndefinedVar(searchingID, this);
 	}
 
+	public String TypeOfOperation(String arg1,String Operator,String arg2,String ClassName) throws KeyWordName{
+			if(Operator.equals("<-")){
+				assert(arg1!=null && arg2!=null);
+				if(arg1.equals(arg2))
+					return arg1;
+				if(getPossibleClass(arg1).someFatherOf(getPossibleClass(arg2))){
+					return arg1;
+				}
+				throw new TypeConfilict();
+			}
+			else if(Operator.equals("KWNEW") ){
+				if(CoolClass.coolSelf_Type.Name.equals(arg1)){
+					return arg1;
+				}
+				return Operator;
+			}
+			else if(Operator.equals("~")){
+				if(arg1.equals("Int"))
+					return arg1;
+				else 
+					throw some shit;
+			}
+			else if(Operator.equals("KWISVOID")){
+				return "Bool";
+			}
+			else if(Operator.equals("/") || Operator.equals("*") || Operator.equals("+") || Operator.equals("-")){
+				assert(arg1!=null && arg2!=null);
+				if(arg1.equals("Int") && arg2.equals("Int"))
+					return arg1;
+				throw some shit
+			}
+			else if(Operator.equals(arg0))
+				
+	}
+
 	private void migrate2ClassList(String Cname, String Pname) throws LoopException {
 		CoolClass migrating = findCoolClassByName(Cname, expectingClassList);
 		expectingClassList.remove(migrating);

@@ -1,4 +1,4 @@
-// Generated from Semantic.g4 by ANTLR 4.4
+// Generated from TypeChecker.g4 by ANTLR 4.4
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;
@@ -52,7 +52,7 @@ public class SemanticLexer extends Lexer {
 	}
 
 	@Override
-	public String getGrammarFileName() { return "Semantic.g4"; }
+	public String getGrammarFileName() { return "TypeChecker.g4"; }
 
 	@Override
 	public String[] getTokenNames() { return tokenNames; }

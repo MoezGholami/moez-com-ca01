@@ -287,11 +287,7 @@ public class SemanticParser extends Parser {
 			_localctx.exception = re;
 			_errHandler.reportError(this, re);
 			_errHandler.recover(this, re);
-		} catch (AnalizerSemantic.DuplicateVariableName e) {
-			System.err.println(e.toString());
-		} catch (AnalizerSemantic.DuplicateMethodName e) {
-			System.err.println(e.toString());
-		} catch (AnalizerSemantic.KeyWordName e) {
+		} catch (AnalizerSemantic.SemanticError e) {
 			System.err.println(e.toString());
 		}
 		finally {
@@ -424,7 +420,7 @@ public class SemanticParser extends Parser {
 						setState(107); match(T__10);
 						setState(108); CurrVarTypeName=match(TID).getText();
 						setState(111);
-						semAnalizer.addVariable2Scope(CurClassName, CurrMethodName, CurrScopeKey,new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName) );
+						semAnalizer.addVariable2Scope(CurClassName, CurrMethodName, CurrScopeKey,new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName), AnalizerSemantic.addingToLetScope);
 						_la = _input.LA(1);
 						if (_la==T__0) {
 							{
@@ -445,7 +441,7 @@ public class SemanticParser extends Parser {
 									setState(115); match(T__10);
 									setState(116); CurrVarTypeName=match(TID).getText();
 									setState(119);
-									semAnalizer.addVariable2Scope(CurClassName, CurrMethodName, CurrScopeKey,new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName) );
+									semAnalizer.addVariable2Scope(CurClassName, CurrMethodName, CurrScopeKey,new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName),AnalizerSemantic.addingToLetScope);
 									_la = _input.LA(1);
 									if (_la==T__0) {
 										{
@@ -483,7 +479,7 @@ public class SemanticParser extends Parser {
 									setState(132); match(T__10);
 									setState(133); CurrVarTypeName=match(TID).getText();
 									setState(134); match(T__17);
-									semAnalizer.addVariable2Scope(CurClassName, CurrMethodName, CurrScopeKey,new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName) );
+									semAnalizer.addVariable2Scope(CurClassName, CurrMethodName, CurrScopeKey,new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName), AnalizerSemantic.addingToCaseScope);
 									setState(135); expr();
 									setState(136); match(T__6);
 								}
@@ -617,9 +613,7 @@ public class SemanticParser extends Parser {
 			_localctx.exception = re;
 			_errHandler.reportError(this, re);
 			_errHandler.recover(this, re);
-		} catch (AnalizerSemantic.DuplicateVariableName e) {
-			System.err.println(e.toString());
-		} catch (AnalizerSemantic.KeyWordName e) {
+		} catch (AnalizerSemantic.SemanticError e) {
 			System.err.println(e.toString());
 		}
 		finally {

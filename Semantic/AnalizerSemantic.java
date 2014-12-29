@@ -11,11 +11,6 @@ public class AnalizerSemantic {
 	public static final int addingToCaseScope	=	2;
 	public static final String Self_token		=	"self";
 
-	//public String TypeNameOfMethod(String TypeNameOfExp0 canBeNull, TYPE of father can be null, MethodName cannot be null, ArrayList<String> args)
-	//throws TypeConflict
-	//public String TypeOfOperation(String Type_arg1 cannot be null, String Operator, String Type_arg2 can be null) TypeConflict
-	
-
 	public static AnalizerSemantic getInstance() {
 		return Instance;
 	}
@@ -29,7 +24,10 @@ public class AnalizerSemantic {
 	}
 
 	public boolean hasMain() {
-		return hasClassWithName("Main", classList);
+		CoolClass MainClass=findCoolClassByName("Main", classList);
+		if(MainClass==null)
+			return false;
+		return hasMethodWithName("main", MainClass.MethodList);
 	}
 
 	public boolean hasSemanticError()
@@ -61,7 +59,7 @@ public class AnalizerSemantic {
 	}
 
 	public ArrayList<Integer> addMethod(String OwnerClassName, String MethodName, String MethodTypeName, ArrayList<UnrecognizedTypeVar> RawArgs)
-			throws DuplicateVariableName, DuplicateMethodName, KeyWordName, SelfNameEx
+			throws DuplicateVariableName, DuplicateMethodName, KeyWordName, SelfNameEx, IllegalSelfType
 	{
 		if(PassedTimes!=0)
 			return null;
@@ -117,7 +115,7 @@ public class AnalizerSemantic {
 
 	public void addVariable2Scope(String ownerClassName, String motherMethodName,
 			ArrayList<Integer> currentScopeKey, UnrecognizedTypeVar rawfield, int whichScope)
-					throws DuplicateVariableName, KeyWordName, CaseDuplicateType, SelfNameEx
+					throws DuplicateVariableName, KeyWordName, CaseDuplicateType, SelfNameEx, IllegalSelfType
 	{
 		if(PassedTimes!=0)
 			return ;
@@ -131,6 +129,8 @@ public class AnalizerSemantic {
 		Scope s=Scope.getScopeInMethod(mother, currentScopeKey);
 		assert s!=null;
 
+		if(whichScope!=addingToLetScope && rawfield.TypeName.equalsIgnoreCase(CoolClass.coolSelf_TYPE.name))
+			throw new IllegalSelfType(rawfield.Name, this);
 		Variable inComingVariable=new Variable(rawfield, this);
 		if(Variable.hasVariableWithName(inComingVariable.Name, mother.args))
 			throw new DuplicateVariableName(inComingVariable.Name, this);
@@ -275,6 +275,62 @@ public class AnalizerSemantic {
 				
 	}
 
+	//public String TypeNameOfMethod(String TypeNameOfExp0 canBeNull, TYPE of father can be null, MethodName cannot be null, ArrayList<String> args)
+		//throws TypeConflict
+
+	public String TypeNameOfMethod(String TypeNameOfExpr0, String FatherTypeName, String MethodName,
+			ArrayList<String> argNames, String CurrentClassName)
+					throws NoClassFound_Name, InvalidInheritance, NoMethodFoundInClass, IllegalArguments, UndefinedVar
+	{
+		if(TypeNameOfExpr0==null)
+			TypeNameOfExpr0=CurrentClassName;
+		CoolClass CalleeClass = determineCalleeClass(TypeNameOfExpr0, FatherTypeName);
+		Method m=findMethodInClass(MethodName, CalleeClass);
+		if(m==null)
+			throw new NoMethodFoundInClass(CalleeClass.name, MethodName, this);
+		if(!MatchArgs(m, argNames))
+			throw new IllegalArguments(m, this);
+		return m.ReturnType.name;
+	}
+
+	private CoolClass determineCalleeClass(String Cname, String pname)
+			throws NoClassFound_Name, InvalidInheritance
+	{
+		CoolClass currentClass=findCoolClassByName(Cname, classList);
+		assert currentClass!=null;
+		if(pname==null || Cname.equals(pname) || pname.equals(CoolClass.coolSelf_TYPE.name))
+			return currentClass;
+		CoolClass parent=findCoolClassByName(pname, classList);
+		if(parent==null)
+			throw new NoClassFound_Name(pname, this);
+		if(!parent.someFatherOf(currentClass))
+			throw new InvalidInheritance(Cname, pname, this);
+		return parent;
+	}
+	private Method findMethodInClass(String MethodName, CoolClass c)
+	{
+		Method result;
+		result=findMethodByName(MethodName, c.MethodList);
+		if (result!=null)
+			return result;
+		if(c==CoolClass.coolObject)
+			return null;
+		return findMethodInClass(MethodName, c.Ancestor);
+	}
+
+	private boolean MatchArgs(Method m, ArrayList<String> argNames) throws UndefinedVar
+	{
+		if(argNames==null)
+			return false;
+		if(argNames.size()!=m.args.size())
+			return false;
+		for(int i=0; i<argNames.size(); ++i)
+			if(!LookUpVarType(m.OwnerClass.name, m.Name, m.MainScope.ScopeKey, argNames.get(i)).equalsIgnoreCase(
+					m.args.get(i).Type.name))
+				return false;
+		return true;
+	}
+
 	private void migrate2ClassList(String Cname, String Pname) throws LoopException {
 		CoolClass migrating = findCoolClassByName(Cname, expectingClassList);
 		expectingClassList.remove(migrating);
@@ -361,12 +417,14 @@ public class AnalizerSemantic {
 	}
 
 	private ArrayList<Variable> convertRawVars2Vars(ArrayList<UnrecognizedTypeVar> rawVars, CoolClass owner)
-		throws DuplicateVariableName, KeyWordName, SelfNameEx
+		throws DuplicateVariableName, KeyWordName, SelfNameEx, IllegalSelfType
 	{
 		ArrayList<Variable> result=new ArrayList<Variable>();
 		for(int i=0; i<rawVars.size(); ++i)
 			if(Variable.hasVariableWithName(rawVars.get(i).Name, result))
 				throw new DuplicateVariableName(rawVars.get(i).Name, this);
+			else if(rawVars.get(i).TypeName.equalsIgnoreCase(CoolClass.coolSelf_TYPE.name))
+				throw new IllegalSelfType(rawVars.get(i).Name, this);
 			else
 				result.add(new Variable(rawVars.get(i),this));
 		return result;
@@ -867,6 +925,83 @@ public class AnalizerSemantic {
 		public String toString()
 		{
 			return ("The followin type names have conflict: "+Tname1+" & "+Tname2+" .");
+		}
+	}
+	public static class InvalidInheritance extends SemanticError
+	{
+		public static final long serialVersionUID = 113L;
+		String Name1;
+		String Name2;
+		public InvalidInheritance(String n1, String n2, AnalizerSemantic as)
+		{
+			super(as);
+			Name1=n1;
+			Name2=n2;
+		}
+		public String toString()
+		{
+			return ("The Class "+Name1+" is not a child of "+Name2+" .");
+		}
+	}
+	public static class NoClassFound_Name extends SemanticError
+	{
+		public static final long serialVersionUID = 114L;
+		String Cname;
+		public NoClassFound_Name(String n, AnalizerSemantic as)
+		{
+			super(as);
+			Cname=n;
+		}
+		public String toString()
+		{
+			return ("The class with name: "+Cname+" has not been defined.");
+		}
+	}
+	public static class NoMethodFoundInClass extends SemanticError
+	{
+		public static final long serialVersionUID = 115L;
+		String Cname;
+		String Mname;
+		public NoMethodFoundInClass(String c, String m, AnalizerSemantic as)
+		{
+			super(as);
+			Cname=c;
+			Mname=m;
+		}
+		public String declaration()
+		{
+			return ("The class "+Cname+" does not have a method with name: "+Mname+" .");
+		}
+	}
+	public static class IllegalSelfType extends SemanticError
+	{
+		public static final long serialVersionUID = 116L;
+		String Name;
+		public IllegalSelfType(String n, AnalizerSemantic as)
+		{
+			super(as);
+			Name=n;
+		}
+		public String decalaraion()
+		{
+			return ("Cannot name this variable as SELF_TYPE: "+Name+" .");
+		}
+	}
+	public static class IllegalArguments extends SemanticError
+	{
+		public static final long serialVersionUID = 117L;
+		Method M;
+		public IllegalArguments(Method m, AnalizerSemantic as)
+		{
+			super(as);
+			M=m;
+		}
+		public String declaration()
+		{
+			String argTypes="";
+			for(int i=0; i<M.args.size(); ++i)
+				argTypes+=(M.args.get(i).Type.name+", ");
+			return ("The method "+M.Name+" needs arguments of following list:\n"+argTypes);
 		}
 	}
 }

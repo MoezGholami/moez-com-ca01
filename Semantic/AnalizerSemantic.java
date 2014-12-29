@@ -1,4 +1,3 @@
-import java.security.KeyException;
 import java.util.ArrayList;
 
 public class AnalizerSemantic {
@@ -8,7 +7,15 @@ public class AnalizerSemantic {
 	private int PassedTimes;
 	private static AnalizerSemantic Instance = new AnalizerSemantic();
 	private static String KeyWords[] = {"class", "else", "fi", "if", "in", "inherits", "isvoid", "let", "loop", "pool", "then", "while", "case", "esac", "new", "of", "not", "true", "false"};
+	public static final int addingToLetScope	=	1;
+	public static final int addingToCaseScope	=	2;
+	public static final String Self_token		=	"self";
+
+	//public String TypeNameOfMethod(String TypeNameOfExp0 canBeNull, TYPE of father can be null, MethodName cannot be null, ArrayList<String> args)
+	//throws TypeConflict
+	//public String TypeOfOperation(String Type_arg1 cannot be null, String Operator, String Type_arg2 can be null) TypeConflict
 	
+
 	public static AnalizerSemantic getInstance() {
 		return Instance;
 	}
@@ -35,6 +42,8 @@ public class AnalizerSemantic {
 			return ;
 		if(Pname==null)
 			Pname = CoolClass.coolObject.name;
+		if(Pname.equals(CoolClass.coolSelf_TYPE.name))
+			throw new LoopException(Cname, this);
 		if(isKeyWord(Pname))
 			throw new KeyWordName(Pname, this);
 		if(isKeyWord(Cname))
@@ -52,7 +61,7 @@ public class AnalizerSemantic {
 	}
 
 	public ArrayList<Integer> addMethod(String OwnerClassName, String MethodName, String MethodTypeName, ArrayList<UnrecognizedTypeVar> RawArgs)
-			throws DuplicateVariableName, DuplicateMethodName, KeyWordName
+			throws DuplicateVariableName, DuplicateMethodName, KeyWordName, SelfNameEx
 	{
 		if(PassedTimes!=0)
 			return null;
@@ -60,8 +69,10 @@ public class AnalizerSemantic {
 		assert hasClassWithName(OwnerClassName, classList);
 		if(isKeyWord(MethodName))
 			throw new KeyWordName(MethodName, this);
-		ArrayList<Variable> args=convertRawVars2Vars(RawArgs);
+		if(MethodName==Self_token)
+			throw new SelfNameEx(this);
 		CoolClass OwnerCoolClass=getPossibleClass(OwnerClassName);
+		ArrayList<Variable> args=convertRawVars2Vars(RawArgs, OwnerCoolClass);
 		Method inComingMethod= new Method(MethodName, getPossibleClass(MethodTypeName), OwnerCoolClass, args);
 		if(hasMethodWithName(inComingMethod.Name, OwnerCoolClass.MethodList)
 				|| duplicateAndNotOverrided(inComingMethod, inComingMethod.OwnerClass.Ancestor))
@@ -70,7 +81,7 @@ public class AnalizerSemantic {
 		return inComingMethod.MainScope.ScopeKey;
 	}
 
-	public void addField(String ownerClassName, UnrecognizedTypeVar rawfield) throws DuplicateVariableName, KeyWordName
+	public void addField(String ownerClassName, UnrecognizedTypeVar rawfield) throws DuplicateVariableName, KeyWordName, SelfNameEx
 	{
 		if(PassedTimes!=0)
 			return ;
@@ -94,18 +105,19 @@ public class AnalizerSemantic {
 		assert owner!=null;
 		Method mother=findMethodByName(motherMethodName, owner.MethodList);
 		assert mother!=null;
-		Scope parent=getScopeInMethod(mother, currentScopeKey);
+		Scope parent=Scope.getScopeInMethod(mother, currentScopeKey);
 		assert parent!=null;
 
 		Scope inComingScope=Scope.generateChildScope4Scope_NotChildLinking(parent);
-		assert !haveScopeWithKeyInMethod(mother, inComingScope.ScopeKey);
-		currentScopeKey.add(currentScopeKey.size()-1, parent.Children.size());
+		assert !Scope.haveScopeWithKeyInMethod(mother, inComingScope.ScopeKey);
+		Scope.Point2NewChild(currentScopeKey, parent);
 		parent.Children.add(inComingScope);
 		return ;
 	}
 
 	public void addVariable2Scope(String ownerClassName, String motherMethodName,
-			ArrayList<Integer> currentScopeKey, UnrecognizedTypeVar rawfield) throws DuplicateVariableName, KeyWordName
+			ArrayList<Integer> currentScopeKey, UnrecognizedTypeVar rawfield, int whichScope)
+					throws DuplicateVariableName, KeyWordName, CaseDuplicateType, SelfNameEx
 	{
 		if(PassedTimes!=0)
 			return ;
@@ -116,15 +128,21 @@ public class AnalizerSemantic {
 		assert owner!=null;
 		Method mother=findMethodByName(motherMethodName, owner.MethodList);
 		assert mother!=null;
-		Scope s=getScopeInMethod(mother, currentScopeKey);
+		Scope s=Scope.getScopeInMethod(mother, currentScopeKey);
 		assert s!=null;
 
 		Variable inComingVariable=new Variable(rawfield, this);
-		if(hasVariableWithName(inComingVariable.Name, mother.args))
+		if(Variable.hasVariableWithName(inComingVariable.Name, mother.args))
 			throw new DuplicateVariableName(inComingVariable.Name, this);
-		Variable duplicateScopeVar=findVariableByName(inComingVariable.Name, s.VarList);
+		Variable duplicateScopeVar=Variable.findVariableByName(inComingVariable.Name, s.VarList);
 		if(duplicateScopeVar!=null)
-			s.VarList.remove(duplicateScopeVar);//see page 11, let, paragraph 3
+			if(whichScope==addingToLetScope)
+				s.VarList.remove(duplicateScopeVar);//see page 11, let, paragraph 3
+			else if(whichScope==addingToLetScope)
+				throw new DuplicateVariableName(inComingVariable.Name, this);
+		duplicateScopeVar=Variable.findVariableByType(inComingVariable.Type, s.VarList);
+		if(duplicateScopeVar!=null && whichScope==addingToCaseScope)
+			throw new CaseDuplicateType(inComingVariable.Name, inComingVariable.Type.name, this);
 		s.VarList.add(inComingVariable);
 	}
 
@@ -147,22 +165,17 @@ public class AnalizerSemantic {
 		assert owner!=null;
 		Method mother=findMethodByName(motherMethodName, owner.MethodList);
 		assert mother!=null;
-		Scope parent=getScopeInMethod(mother, currentScopeKey);
+		Scope parent=Scope.getScopeInMethod(mother, currentScopeKey);
 		assert parent!=null;
 
-		currentScopeKey.add(currentScopeKey.size()-1, element);//TODO: FINISH THIS
+		Scope.Point2NewChild(currentScopeKey, parent);
 	}
 
 	public void updateKeyWhenClosingScope(ArrayList<Integer> ScopeKey)
 	{
 		assert !(ScopeKey==null || ScopeKey.size()==0);
-		if(ScopeKey.size()==1)//Main scope is closing
-		{
-			assert ScopeKey.get(0)==Scope.EndOfScopeSearchIdentifier;
-			ScopeKey.remove(0);
-			return ;
-		}
-		ScopeKey.remove(ScopeKey.size()-2);
+		Scope.closeScope(ScopeKey);
+		
 	}
 	
 	public void commitFirstPass()
@@ -208,70 +221,25 @@ public class AnalizerSemantic {
 		assert owner!=null;
 		Method mother=findMethodByName(motherMethodName, owner.MethodList);
 		assert mother!=null;
-		Scope s=getScopeInMethod(mother, currentScopeKey);
+		Scope s=Scope.getScopeInMethod(mother, currentScopeKey);
 		assert s!=null;
 
 		String result=null;
 		Variable var;
 
-		result=searchVarTypeInScope(searchingID, s);
+		result=searchVarTypeInScope(searchingID, s, owner);
 		if(result!=null)
 			return result;
-		var=findVariableByName(searchingID, mother.args);
+		var=Variable.findVariableByName(searchingID, mother.args);
 		if(var!=null)
-			return var.Type.name;
-		var=findVariableByName(searchingID, owner.Fields);
+			return FinalTypeName(var, owner);
+		var=findFieldInClass(searchingID, owner);
 		if(var!=null)
-			return var.Type.name;
+			return FinalTypeName(var, owner);
 
 		throw new UndefinedVar(searchingID, this);
 	}
-	
-	public Scope getScopeByMethod(Method m, ArrayList<Integer> key){
-		if(m==null || key==null || key.size()==0)
-			return null;
-		return getScopeInScope(m.MainScope, key);
-	}
-	
-	private Scope getScopeInMethod(Method m, ArrayList<Integer> key)
-	{
-		if(m==null || key==null || key.size()==0)
-			return null;
-		return getScopeInScope(m.MainScope, key);
-	}
 
-	private boolean haveScopeWithKeyInMethod(Method m, ArrayList<Integer> key)
-	{
-		return getScopeInMethod(m, key)!=null;
-	}
-
-	private boolean haveScopeWithKeyInScope(Scope s, ArrayList<Integer> key)
-	{
-		return getScopeInScope(s, key)!=null;
-	}
-
-	private Scope getScopeInScope(Scope s, ArrayList<Integer> key)
-	{
-		ArrayList<Integer> terminatingKey=new ArrayList<Integer>(key);
-		return getScopeInScope_TerminatingKey(s, terminatingKey);
-	}
-
-	private Scope getScopeInScope_TerminatingKey(Scope s, ArrayList<Integer> key)
-	{
-		if(key==null || key.size()==0)
-			return null;
-		if(key.size()==1)
-			if(key.get(0)==Scope.EndOfScopeSearchIdentifier)
-				return s;
-			else
-				return null;
-		int nextBranch=key.get(0);
-		if(nextBranch >= s.Children.size())
-			return null;
-		key.remove(0);
-		return getScopeInScope(s.Children.get(nextBranch), key);
-	}
-	
 	private void migrate2ClassList(String Cname, String Pname) throws LoopException {
 		CoolClass migrating = findCoolClassByName(Cname, expectingClassList);
 		expectingClassList.remove(migrating);
@@ -357,12 +325,12 @@ public class AnalizerSemantic {
 				throw new DuplicateMethodName(c.MethodList.get(i).Name, this);
 	}
 
-	private ArrayList<Variable> convertRawVars2Vars(ArrayList<UnrecognizedTypeVar> rawVars)
-		throws DuplicateVariableName, KeyWordName
+	private ArrayList<Variable> convertRawVars2Vars(ArrayList<UnrecognizedTypeVar> rawVars, CoolClass owner)
+		throws DuplicateVariableName, KeyWordName, SelfNameEx
 	{
 		ArrayList<Variable> result=new ArrayList<Variable>();
 		for(int i=0; i<rawVars.size(); ++i)
-			if(hasVariableWithName(rawVars.get(i).Name, result))
+			if(Variable.hasVariableWithName(rawVars.get(i).Name, result))
 				throw new DuplicateVariableName(rawVars.get(i).Name, this);
 			else
 				result.add(new Variable(rawVars.get(i),this));
@@ -377,29 +345,30 @@ public class AnalizerSemantic {
 				return s.VarList.get(i);
 		return getVariableFromScope(n,s.Parent);
 	}
-	
-	private Variable findVariableByName(String n,ArrayList<Variable> list){
-		for(int i=0;i<list.size();i++)
-			if(list.get(i).Name.equals(n))
-				return list.get(i);
-		return null;
-	}
 
-	private boolean hasVariableWithName(String n, ArrayList<Variable> list){
-		return findVariableByName(n,list) != null;
+	private Variable findFieldInClass(String SearchingID, CoolClass owner)
+	{
+		Variable result=null;
+		result=Variable.findVariableByName(SearchingID, owner.Fields);
+		if(result!=null)
+			return result;
+		if(owner==CoolClass.coolObject)
+			return null;
+		return findFieldInClass(SearchingID, owner.Ancestor);
 	}
 
 	private boolean hasFieldOrInherited(String vname, CoolClass c)
 	{
 		if(c==null)
 			return false;
-		if(hasVariableWithName(vname, c.Fields))
+		if(Variable.hasVariableWithName(vname, c.Fields))
 			return true;
 		return hasFieldOrInherited(vname, c.Ancestor);
 	}
 
 	private void addPrimitiveClasses(ArrayList<CoolClass> clist)
 	{
+		clist.add(CoolClass.coolSelf_TYPE);
 		clist.add(CoolClass.coolObject);
 		clist.add(CoolClass.coolInt);
 		clist.add(CoolClass.coolBool);
@@ -407,14 +376,14 @@ public class AnalizerSemantic {
 		clist.add(CoolClass.coolIO);
 	}
 
-	private String searchVarTypeInScope(String varName, Scope s)
+	private String searchVarTypeInScope(String varName, Scope s, CoolClass owner)
 	{
 		if(s==null)
 			return null;
-		Variable v=findVariableByName(varName,s.VarList);
+		Variable v=Variable.findVariableByName(varName,s.VarList);
 		if(v!=null)
 			return v.Type.name;
-		return searchVarTypeInScope(varName, s.Parent);
+		return searchVarTypeInScope(varName, s.Parent, owner);
 	}
 
 	private static boolean isKeyWord(String s)
@@ -430,7 +399,14 @@ public class AnalizerSemantic {
 				return true;
 		return false;
 	}
-	
+
+	private static String FinalTypeName(Variable v, CoolClass owner)
+	{
+		if(v.Type==CoolClass.coolSelf_TYPE)
+			return owner.name;
+		return v.Type.name;
+	}
+
 	public static class UnrecognizedTypeVar
 	{
 		String Name;
@@ -442,20 +418,56 @@ public class AnalizerSemantic {
 	{
 		String Name;
 		CoolClass Type;
-		public Variable(String n, CoolClass t)
+		public Variable(String n, CoolClass t, AnalizerSemantic as) throws SelfNameEx
+		{
+			if(n==AnalizerSemantic.Self_token)
+				throw new SelfNameEx(as);
+			Name=n;
+			Type=t;
+		}
+		public static Variable getSelfVariable4Class(CoolClass t)
+		{
+			if(t==null || hasVariableWithName(Self_token, t.Fields))
+				return null;
+			return new Variable(Self_token, t);
+		}
+
+		public Variable(UnrecognizedTypeVar rv, AnalizerSemantic as) throws KeyWordName, SelfNameEx
+		{
+			if(AnalizerSemantic.isKeyWord(rv.Name))
+				throw new KeyWordName(rv.Name, as);
+			if(rv.Name==AnalizerSemantic.Self_token)
+				throw new SelfNameEx(as);
+			Name=rv.Name;
+			Type=as.getPossibleClass(rv.TypeName);
+		}
+
+		private Variable(String n, CoolClass t)
 		{
 			Name=n;
 			Type=t;
 		}
-		public Variable(UnrecognizedTypeVar rv, AnalizerSemantic as) throws KeyWordName
-		{
-			if(AnalizerSemantic.isKeyWord(rv.Name))
-				throw new KeyWordName(rv.Name, as);
-			Name=rv.Name;
-			Type=as.getPossibleClass(rv.TypeName);
-		}
 		public String toString()	{ return Name+":"+Type.toString(); }
 		public static boolean sameType(Variable x, Variable y)	{ return x.Type==y.Type; }
+
+		public static boolean hasVariableWithName(String n, ArrayList<Variable> list){
+			return findVariableByName(n,list) != null;
+		}
+
+		public static Variable findVariableByName(String n, ArrayList<Variable> list){
+			for(int i=0;i<list.size();i++)
+				if(list.get(i).Name.equals(n))
+					return list.get(i);
+			return null;
+		}
+
+		public static Variable findVariableByType(CoolClass t, ArrayList<Variable> list)
+		{
+			for(int i=0; i<list.size(); ++i)
+				if(list.get(i).Type==t)
+					return list.get(i);
+			return null;
+		}
 	}
 
 	private static class Method
@@ -502,8 +514,62 @@ public class AnalizerSemantic {
 		{
 			Scope result=new Scope(s, s.MotherMethod, new ArrayList<Variable>());
 			result.ScopeKey=new ArrayList<Integer>(s.ScopeKey);
-			result.ScopeKey.add(result.ScopeKey.size()-1, s.Children.size());
+			Point2NewChild(result.ScopeKey, s);
 			return result;
+		}
+		public static void Point2NewChild(ArrayList<Integer> currentScopeKey, Scope parent)
+		{
+			currentScopeKey.add(currentScopeKey.size()-1, parent.Children.size());
+		}
+		
+		private static Scope getScopeInMethod(Method m, ArrayList<Integer> key)
+		{
+			if(m==null || key==null || key.size()==0)
+				return null;
+			return getScopeInScope(m.MainScope, key);
+		}
+
+		private static boolean haveScopeWithKeyInMethod(Method m, ArrayList<Integer> key)
+		{
+			return getScopeInMethod(m, key)!=null;
+		}
+
+		private static boolean haveScopeWithKeyInScope(Scope s, ArrayList<Integer> key)
+		{
+			return getScopeInScope(s, key)!=null;
+		}
+
+		private static Scope getScopeInScope(Scope s, ArrayList<Integer> key)
+		{
+			ArrayList<Integer> terminatingKey=new ArrayList<Integer>(key);
+			return getScopeInScope_TerminatingKey(s, terminatingKey);
+		}
+
+		private static Scope getScopeInScope_TerminatingKey(Scope s, ArrayList<Integer> key)
+		{
+			if(key==null || key.size()==0)
+				return null;
+			if(key.size()==1)
+				if(key.get(0)==Scope.EndOfScopeSearchIdentifier)
+					return s;
+				else
+					return null;
+			int nextBranch=key.get(0);
+			if(nextBranch >= s.Children.size())
+				return null;
+			key.remove(0);
+			return getScopeInScope(s.Children.get(nextBranch), key);
+		}
+
+		public static void closeScope(ArrayList<Integer> ScopeKey)
+		{
+			if(ScopeKey.size()==1)//Main scope is closing
+			{
+				assert ScopeKey.get(0)==Scope.EndOfScopeSearchIdentifier;
+				ScopeKey.remove(0);
+				return ;
+			}
+			ScopeKey.remove(ScopeKey.size()-2);
 		}
 	}
 	
@@ -514,11 +580,18 @@ public class AnalizerSemantic {
 		public ArrayList<Method> MethodList;
 		public ArrayList<Variable> Fields;
 		
+		public static final CoolClass coolSelf_TYPE = new CoolClass("Self_Type");
+
 		public static final CoolClass coolObject	= new CoolClass("Object");
 		public static final CoolClass coolInt		= new CoolClass("Int", coolObject);
 		public static final CoolClass coolString	= new CoolClass("String", coolObject);
 		public static final CoolClass coolBool		= new CoolClass("Bool", coolObject);
 		public static final CoolClass coolIO		= new CoolClass("IO", coolObject);
+
+		static
+		{
+			addMethodAndFields2StaticClasses();
+		}
 	
 		private CoolClass(String n){
 			Ancestor = null;
@@ -526,7 +599,7 @@ public class AnalizerSemantic {
 			MethodList=new ArrayList<Method>();
 			Fields= new ArrayList<Variable>();
 		}
-		CoolClass(String n,CoolClass p){
+		public CoolClass(String n,CoolClass p){
 			name = n;
 			if(p == null)
 				Ancestor = coolObject;
@@ -534,6 +607,7 @@ public class AnalizerSemantic {
 				Ancestor = p;
 			MethodList=new ArrayList<Method>();
 			Fields= new ArrayList<Variable>();
+			Fields.add(Variable.getSelfVariable4Class(this));
 		}
 		public String toString()	{ return name; }
 		public static CoolClass FirstCommonFatherClass(CoolClass a, CoolClass b)
@@ -562,6 +636,44 @@ public class AnalizerSemantic {
 			if(this==c.Ancestor)
 				return true;
 			return someFatherOf(c.Ancestor);
+		}
+
+		private static void addMethodAndFields2StaticClasses()
+		{
+			addMethodsOfObject();
+			addMethodsOfString();
+			addMethodsOfIO();
+		}
+
+		private static void addMethodsOfObject()
+		{
+			coolObject.MethodList.add(new Method("abort", coolObject, coolObject, new ArrayList<Variable>()));
+			coolObject.MethodList.add(new Method("type_name", coolString, coolObject, new ArrayList<Variable>()));
+			coolObject.MethodList.add(new Method("copy", coolSelf_TYPE, coolObject, new ArrayList<Variable>()));
+		}
+
+		private static void addMethodsOfString()
+		{
+			coolString.MethodList.add(new Method("length", coolInt, coolString, new ArrayList<Variable>()));
+			ArrayList<Variable> concatArgs =  new ArrayList<Variable>();
+			concatArgs.add(new Variable("s", coolString));
+			coolString.MethodList.add(new Method("concat", coolString, coolString, new ArrayList<Variable>()));
+			ArrayList<Variable> SubArgs = new ArrayList<Variable>();
+			SubArgs.add(new Variable("i",coolInt));
+			SubArgs.add(new Variable("l", coolInt));
+			coolString.MethodList.add(new Method("substr", coolString, coolString, SubArgs));
+		}
+
+		private static void addMethodsOfIO()
+		{
+			coolIO.MethodList.add(new Method("in_int", coolInt, coolIO, new ArrayList<Variable>()));
+			coolIO.MethodList.add(new Method("in_string", coolString, coolIO, new ArrayList<Variable>()));
+			ArrayList<Variable> out_intArgs = new ArrayList<Variable>();
+			ArrayList<Variable> out_strArgs	= new ArrayList<Variable>();
+			out_intArgs.add(new Variable("x", coolInt));
+			out_strArgs.add(new Variable("x", coolString));
+			coolIO.MethodList.add(new Method("out_int", coolSelf_TYPE, coolIO, out_intArgs));
+			coolIO.MethodList.add(new Method("out_string", coolSelf_TYPE, coolIO, out_strArgs));
 		}
 	}
 
@@ -676,6 +788,50 @@ public class AnalizerSemantic {
 		public String toString()
 		{
 			return ("The variable with name: "+UndefinedID+" has not been declared in this scope.");
+		}
+	}
+	public static class SelfNameEx extends SemanticError
+	{
+		public static final long serialVersionUID = 110L;
+		public SelfNameEx(AnalizerSemantic as)
+		{
+			super(as);
+		}
+		public String toString()
+		{
+			return "The name cannot be self.";
+		}
+	}
+	public static class CaseDuplicateType extends SemanticError
+	{
+		public static final long serialVersionUID = 111L;
+		String varName;
+		String varTypeName;
+		public CaseDuplicateType(String name, String tName, AnalizerSemantic as)
+		{
+			super(as);
+			varName=name;
+			varTypeName=tName;
+		}
+		public String toString()
+		{
+			return ("In case statement we cannot have duplication in type. the following variable caused error: "+varName+" : "+varTypeName+" .");
+		}
+	}
+	public static class TypeConflict extends SemanticError
+	{
+		public static final long serialVersionUID = 112L;
+		String Tname1;
+		String Tname2;
+		public TypeConflict(String t1, String t2, AnalizerSemantic as)
+		{
+			super(as);
+			Tname1=t1;
+			Tname2=t2;
+		}
+		public String toString()
+		{
+			return ("The followin type names have conflict: "+Tname1+" & "+Tname2+" .");
 		}
 	}
 }

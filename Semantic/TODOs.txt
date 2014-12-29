@@ -1,11 +1,8 @@
  install official cool compiler
 2: SELF_TYPE -> used to refere to self type varialbe
 3: SELF_TYpE -> as the return type of a method, decleared type of a let, decleared type of an attribute => page 7
-7: static types and dynamic types => page 7 
-MAIN.java
 print location of error
-IO, OBJect,... methods and fields
-self
-cannot define with self
-
 MOSTAHAB: convert arraylists to hashmap
+TODO: SELF_TYPE
+
+SELF_TYPE returns a --> error

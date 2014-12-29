@@ -240,39 +240,72 @@ public class AnalizerSemantic {
 		throw new UndefinedVar(searchingID, this);
 	}
 
-	public String TypeOfOperation(String arg1,String Operator,String arg2,String ClassName) throws KeyWordName{
-			if(Operator.equals("<-")){
-				assert(arg1!=null && arg2!=null);
-				if(arg1.equals(arg2))
-					return arg1;
-				if(getPossibleClass(arg1).someFatherOf(getPossibleClass(arg2))){
-					return arg1;
-				}
-				throw new TypeConfilict();
+	public String TypeOfOperation(String arg1,String Operator,String arg2,String ClassName) throws KeyWordName, TypeConflict, NoClassFound_Name{
+		if(Operator.equals("<-")){
+			assert(arg1!=null && arg2!=null);
+			if(arg1.equals(arg2))
+				return arg1;
+			if(getPossibleClass(arg1).someFatherOf(getPossibleClass(arg2))){
+				return arg1;
 			}
-			else if(Operator.equals("KWNEW") ){
-				if(CoolClass.coolSelf_Type.Name.equals(arg1)){
-					return arg1;
-				}
-				return Operator;
+			throw new TypeConflict(arg1,arg2,this);
+		}
+		else if(Operator.equals("KWNEW") ){
+			if(CoolClass.coolSelf_TYPE.name.equals(arg1)){
+				return arg1;
 			}
-			else if(Operator.equals("~")){
-				if(arg1.equals("Int"))
-					return arg1;
-				else 
-					throw some shit;
-			}
-			else if(Operator.equals("KWISVOID")){
+			if(hasClassWithName(arg1, classList))
+				return arg1;
+			throw new NoClassFound_Name(arg1,this);
+		}
+		else if(Operator.equals("~")){
+			if(arg1.equals("Int"))
+				return arg1;
+			else 
+				throw new TypeConflict("Int",arg1,this);
+		}
+		else if(Operator.equals("KWISVOID")){
+			return "Bool";
+		}
+		else if(Operator.equals("/") || Operator.equals("*") || Operator.equals("+") || Operator.equals("-")){
+			assert(arg1!=null && arg2!=null);
+			if(arg1.equals("Int") && arg2.equals("Int"))
+				return arg1;
+			if(arg1.equals("Int"))
+				throw new TypeConflict("Int",arg2,this);
+			throw new TypeConflict("Int",arg1,this);
+		}
+		else if(Operator.equals("<") || Operator.equals("<=")){
+			assert(arg1!=null && arg2!=null);
+			if(arg1.equals("Int") && arg2.equals("Int"))
 				return "Bool";
+			if(arg1.equals("Int"))
+				throw new TypeConflict("Int",arg2,this);
+			throw new TypeConflict("Int",arg1,this);
+		}
+		else if(Operator.equals("=")){
+			assert(arg1!=null && arg2!=null);
+			if(arg1.equals("Int")){
+				if(arg2.equals("Int"))
+					return "Bool";
+				throw new TypeConflict("Int",arg2,this);
 			}
-			else if(Operator.equals("/") || Operator.equals("*") || Operator.equals("+") || Operator.equals("-")){
-				assert(arg1!=null && arg2!=null);
-				if(arg1.equals("Int") && arg2.equals("Int"))
-					return arg1;
-				throw some shit
-			}
-			else if(Operator.equals(arg0))
-				
+			if(arg2.equals("Int"))
+				throw new TypeConflict("Int",arg1,this);
+			return "Bool";
+		}
+			
+		return "FUCK";
+}
+
+	
+	public boolean addMethodReturnTypeCheck(String ReturnType,String TID) throws KeyWordName{
+		if(TID.equals(ReturnType))
+			return true;
+		if(getPossibleClass(TID).someFatherOf(getPossibleClass(ReturnType))){
+			return true;
+		}
+		return false;
 	}
 
 	//public String TypeNameOfMethod(String TypeNameOfExp0 canBeNull, TYPE of father can be null, MethodName cannot be null, ArrayList<String> args)
@@ -290,7 +323,10 @@ public class AnalizerSemantic {
 			throw new NoMethodFoundInClass(CalleeClass.name, MethodName, this);
 		if(!MatchArgs(m, argNames))
 			throw new IllegalArguments(m, this);
-		return m.ReturnType.name;
+		if(m.OwnerClass==CoolClass.coolSelf_TYPE)
+			return CurrentClassName;
+		else
+			return m.OwnerClass.name;
 	}
 
 	private CoolClass determineCalleeClass(String Cname, String pname)

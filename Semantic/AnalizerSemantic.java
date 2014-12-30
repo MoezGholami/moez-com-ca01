@@ -23,6 +23,22 @@ public class AnalizerSemantic {
 		PassedTimes=0;
 	}
 
+	public String toString()
+	{
+		String result="";
+		result+="The program has the following classes:\n";
+		for(int i=0; i<classList.size(); ++i)
+			result+=(classList.get(i).name+", ");
+		result+="\nTheClasses:\n\n";
+		for(int i=0; i<classList.size(); ++i)
+		{
+			result+="\n\n\n############################################";
+			result+=classList.get(i).toString();
+		}
+		return result;
+	}
+
+
 	public boolean hasMain() {
 		CoolClass MainClass=findCoolClassByName("Main", classList);
 		if(MainClass==null)
@@ -576,7 +592,7 @@ public class AnalizerSemantic {
 			Name=n;
 			Type=t;
 		}
-		public String toString()	{ return Name+":"+Type.toString(); }
+		public String toString()	{ return Name+" : "+Type.name; }
 		public static boolean sameType(Variable x, Variable y)	{ return x.Type==y.Type; }
 
 		public static boolean hasVariableWithName(String n, ArrayList<Variable> list){
@@ -613,6 +629,20 @@ public class AnalizerSemantic {
 			OwnerClass=owner;
 			args=arguments;
 			MainScope=Scope.generateMainScopeOfMethod(this);
+		}
+
+		public String toString()
+		{
+			String result="";
+			result+=("Name: "+Name+"\tType: "+ReturnType.name+"\n");
+			result+=("OwnerClass: "+OwnerClass.name+"\n");
+			result+=("Arguments:\n");
+			for(int i=0; i<args.size(); ++i)
+				result+=(args.get(i).toString()+"\n");
+			result+="\n\nMainScope:\n";
+			result+=MainScope.toString();
+			result+="\n\n";
+			return result;
 		}
 	}
 
@@ -700,6 +730,21 @@ public class AnalizerSemantic {
 			}
 			ScopeKey.remove(ScopeKey.size()-2);
 		}
+
+		public String toString()
+		{
+			String result="";
+			result+=("key: "+ScopeKey.toString());
+			result+=("parentKey: "+(Parent==null?"null":Parent.ScopeKey.toString())+"\n");
+			result+=("Vars:\n");
+			for(int i=0; i<VarList.size(); ++i)
+				result+=(VarList.get(i).toString()+"\n");
+			result+="\n\nChildren:\n";
+			for(int i=0; i<Children.size();++i)
+				result+=(Children.get(i).toString()+"\n");
+			result+="\n\n";
+			return result;
+		}
 	}
 	
 	private static class CoolClass {
@@ -738,7 +783,6 @@ public class AnalizerSemantic {
 			Fields= new ArrayList<Variable>();
 			Fields.add(Variable.getSelfVariable4Class(this));
 		}
-		public String toString()	{ return name; }
 		public static CoolClass FirstCommonFatherClass(CoolClass a, CoolClass b)
 		{
 			assert !(a==null || b==null);
@@ -765,6 +809,20 @@ public class AnalizerSemantic {
 			if(this==c.Ancestor)
 				return true;
 			return someFatherOf(c.Ancestor);
+		}
+
+		public String toString()
+		{
+			String result="";
+			result+=("name= "+name+"\n");
+			result+=("FatherName: "+(Ancestor==null?"null":Ancestor.name)+"\n");
+			result+="\nFileds:\n";
+			for(int i=0; i<Fields.size(); ++i)
+				result+=(Fields.get(i).toString()+"\n");
+			result+="\nMethods:\n";
+			for(int i=0; i<MethodList.size(); ++i)
+				result+=(MethodList.get(i).toString()+"\n");
+			return result;
 		}
 
 		private static void addMethodAndFields2StaticClasses()

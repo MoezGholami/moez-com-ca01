@@ -267,9 +267,9 @@ public class SemanticParser extends Parser {
 					enterOuterAlt(_localctx, 2);
 					{
 						//field detected
-						setState(78); CurrVarTypeName=match(OID).getText();
+						setState(78); CurrVarName=match(OID).getText();
 						setState(79); match(T__10);
-						setState(80); CurrVarTypeName=match(TID).getText();
+						setState(80); CurrVarTypeName=match(TID).getText();	
 						semAnalizer.addField(CurClassName, new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName));
 						setState(83);
 						_la = _input.LA(1);

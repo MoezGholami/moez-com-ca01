@@ -83,7 +83,7 @@ public class AnalizerSemantic {
 		assert hasClassWithName(OwnerClassName, classList);
 		if(isKeyWord(MethodName))
 			throw new KeyWordName(MethodName, this);
-		if(MethodName==Self_token)
+		if(MethodName.equals(Self_token))
 			throw new SelfNameEx(this);
 		CoolClass OwnerCoolClass=getPossibleClass(OwnerClassName);
 		ArrayList<Variable> args=convertRawVars2Vars(RawArgs, OwnerCoolClass);
@@ -264,7 +264,11 @@ public class AnalizerSemantic {
 			if(getPossibleClass(arg1).someFatherOf(getPossibleClass(arg2))){
 				return arg1;
 			}
-			throw new TypeConflict(arg1,arg2,this);
+			System.err.printf("arg1 = %s\n",arg1);
+			System.err.printf("arg2 = %s\n",arg2);
+			System.err.printf("Operator = %s\n",Operator);
+			
+			//throw new TypeConflict("f","s",this);
 		}
 		else if(Operator.equals("KWNEW") ){
 			if(CoolClass.coolSelf_TYPE.name.equals(arg1)){
@@ -288,26 +292,33 @@ public class AnalizerSemantic {
 			if(arg1.equals("Int") && arg2.equals("Int"))
 				return arg1;
 			if(arg1.equals("Int"))
-				throw new TypeConflict("Int",arg2,this);
-			throw new TypeConflict("Int",arg1,this);
+				throw new TypeConflict("f","s",this);
+				//throw new TypeConflict("Int",arg2,this);
+			throw new TypeConflict("s","f",this);
+			//throw new TypeConflict("Int",arg1,this);
 		}
 		else if(Operator.equals("<") || Operator.equals("<=")){
 			assert(arg1!=null && arg2!=null);
 			if(arg1.equals("Int") && arg2.equals("Int"))
 				return "Bool";
 			if(arg1.equals("Int"))
-				throw new TypeConflict("Int",arg2,this);
-			throw new TypeConflict("Int",arg1,this);
+				throw new TypeConflict("w","q",this);
+				//throw new TypeConflict("Int",arg2,this);
+			throw new TypeConflict("qwe","shq",this);
+			//throw new TypeConflict("Int",arg1,this);
 		}
 		else if(Operator.equals("=")){
+			System.err.println("Equality test"+arg1+" "+arg2);
 			assert(arg1!=null && arg2!=null);
 			if(arg1.equals("Int")){
 				if(arg2.equals("Int"))
 					return "Bool";
-				throw new TypeConflict("Int",arg2,this);
+				throw new TypeConflict("123","2rr2",this);
+				//throw new TypeConflict("Int",arg2,this);
 			}
 			if(arg2.equals("Int"))
-				throw new TypeConflict("Int",arg1,this);
+				throw new TypeConflict("rty","yuuio",this);
+				//throw new TypeConflict("Int",arg1,this);
 			return "Bool";
 		}
 			
@@ -565,7 +576,7 @@ public class AnalizerSemantic {
 		CoolClass Type;
 		public Variable(String n, CoolClass t, AnalizerSemantic as) throws SelfNameEx
 		{
-			if(n==AnalizerSemantic.Self_token)
+			if(n.equals(AnalizerSemantic.Self_token))
 				throw new SelfNameEx(as);
 			Name=n;
 			Type=t;
@@ -581,7 +592,7 @@ public class AnalizerSemantic {
 		{
 			if(AnalizerSemantic.isKeyWord(rv.Name))
 				throw new KeyWordName(rv.Name, as);
-			if(rv.Name==AnalizerSemantic.Self_token)
+			if(rv.Name.equals(AnalizerSemantic.Self_token))
 				throw new SelfNameEx(as);
 			Name=rv.Name;
 			Type=as.getPossibleClass(rv.TypeName);
@@ -754,8 +765,7 @@ public class AnalizerSemantic {
 		public ArrayList<Method> MethodList;
 		public ArrayList<Variable> Fields;
 		
-		public static final CoolClass coolSelf_TYPE = new CoolClass("Self_Type");
-
+		public static final CoolClass coolSelf_TYPE = new CoolClass("SELF_TYPE");
 		public static final CoolClass coolObject	= new CoolClass("Object");
 		public static final CoolClass coolInt		= new CoolClass("Int", coolObject);
 		public static final CoolClass coolString	= new CoolClass("String", coolObject);

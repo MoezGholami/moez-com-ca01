@@ -239,20 +239,23 @@ public class AnalizerSemantic {
 	{
 		CoolClass owner=findCoolClassByName(ownerClassName, classList);
 		assert owner!=null;
-		Method mother=findMethodByName(motherMethodName, owner.MethodList);
-		assert mother!=null;
-		Scope s=Scope.getScopeInMethod(mother, currentScopeKey);
-		assert s!=null;
-
-		String result=null;
 		Variable var;
+		if(motherMethodName!=null)
+		{
+			Method mother=findMethodInClass(motherMethodName, owner);
+			assert mother!=null;
+			Scope s=Scope.getScopeInMethod(mother, currentScopeKey);
+			assert s!=null;
 
-		result=searchVarTypeInScope(searchingID, s, owner);
-		if(result!=null)
-			return result;
-		var=Variable.findVariableByName(searchingID, mother.args);
-		if(var!=null)
-			return FinalTypeName(var, owner);
+			String result=null;
+
+			result=searchVarTypeInScope(searchingID, s, owner);
+			if(result!=null)
+				return result;
+			var=Variable.findVariableByName(searchingID, mother.args);
+			if(var!=null)
+				return FinalTypeName(var, owner);
+		}
 		var=findFieldInClass(searchingID, owner);
 		if(var!=null)
 			return FinalTypeName(var, owner);
@@ -266,13 +269,10 @@ public class AnalizerSemantic {
 			if(arg1.equals(arg2))
 				return arg1;
 			if(getPossibleClass(arg1).someFatherOf(getPossibleClass(arg2))){
+				//System.err.printf
 				return arg1;
 			}
-			System.err.printf("arg1 = %s\n",arg1);
-			System.err.printf("arg2 = %s\n",arg2);
-			System.err.printf("Operator = %s\n",Operator);
-			
-			//throw new TypeConflict("f","s",this);
+			throw new TypeConflict(arg1,getPossibleClass(arg2).name,this);
 		}
 		else if(Operator.equals("KWNEW") ){
 			if(CoolClass.coolSelf_TYPE.name.equals(arg1)){

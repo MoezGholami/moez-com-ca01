@@ -273,6 +273,7 @@ public class TypeCheckerParser extends Parser {
 				case 2:
 					enterOuterAlt(_localctx, 2);
 					{
+						CurrMethodName = null;
 						setState(78); CurrVarName=match(OID).getText();
 						setState(79); match(T__10);
 						setState(80); CurrVarTypeName=match(TID).getText();
@@ -490,7 +491,7 @@ public class TypeCheckerParser extends Parser {
 							{
 								{
 									setState(131); CurrVarName = match(OID).getText();
-									setState(132); match(T__10); //Here245
+									setState(132); match(T__10);
 									setState(133); CurrVarTypeName = match(TID).getText();
 									CaseTypeVariables.add(CurrVarTypeName);
 									setState(134); match(T__17);
@@ -589,7 +590,10 @@ public class TypeCheckerParser extends Parser {
 				case 10:
 					enterOuterAlt(_localctx, 10);
 					{
-						setState(176); TypeName = semAnalizer.LookUpVarType(CurClassName,CurrMethodName,CurrScopeKey,match(OID).getText());
+						CurrVarName = match(OID).getText();
+						System.err.println("String? >>>> "+CurrVarName);
+						setState(176); TypeName = semAnalizer.LookUpVarType(CurClassName,CurrMethodName,CurrScopeKey,CurrVarName);
+						assert TypeName !=null;
 					}
 					break;
 				case 11:

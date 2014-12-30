@@ -5,11 +5,14 @@ public class AnalizerSemantic {
 	private ArrayList<CoolClass> expectingClassList;
 	private boolean SemanticErrorFound;
 	private int PassedTimes;
+	private int LineNumber;
+
 	private static AnalizerSemantic Instance = new AnalizerSemantic();
 	private static String KeyWords[] = {"class", "else", "fi", "if", "in", "inherits", "isvoid", "let", "loop", "pool", "then", "while", "case", "esac", "new", "of", "not", "true", "false"};
 	public static final int addingToLetScope	=	1;
 	public static final int addingToCaseScope	=	2;
 	public static final String Self_token		=	"self";
+	public static final int EOF_LineNumber		=	-1;
 
 	public static AnalizerSemantic getInstance() {
 		return Instance;
@@ -32,12 +35,11 @@ public class AnalizerSemantic {
 		result+="\nTheClasses:\n\n";
 		for(int i=0; i<classList.size(); ++i)
 		{
-			result+="\n\n\n############################################";
+			result+="\n\n\n############################################\n";
 			result+=classList.get(i).toString();
 		}
 		return result;
 	}
-
 
 	public boolean hasMain() {
 		CoolClass MainClass=findCoolClassByName("Main", classList);
@@ -199,6 +201,8 @@ public class AnalizerSemantic {
 	{
 		if(PassedTimes!=0)
 			return ;
+
+		LineNumber=EOF_LineNumber;
 	
 		if(!hasMain())
 			throw new NoMainException(this);
@@ -335,34 +339,41 @@ public class AnalizerSemantic {
 		return false;
 	}
 
-	//public String TypeNameOfMethod(String TypeNameOfExp0 canBeNull, TYPE of father can be null, MethodName cannot be null, ArrayList<String> args)
-		//throws TypeConflict
-
 	public String TypeNameOfMethod(String TypeNameOfExpr0, String FatherTypeName, String MethodName,
 			ArrayList<String> argNames, String CurrentClassName)
-					throws NoClassFound_Name, InvalidInheritance, NoMethodFoundInClass, IllegalArguments, UndefinedVar
+					throws NoClassFound_Name, InvalidInheritance, NoMethodFoundInClass, IllegalArguments, UndefinedVar, IllegalSelfType
 	{
 		if(TypeNameOfExpr0==null)
 			TypeNameOfExpr0=CurrentClassName;
-		CoolClass CalleeClass = determineCalleeClass(TypeNameOfExpr0, FatherTypeName);
+		CoolClass CalleeClass = determineCalleeClass(TypeNameOfExpr0, FatherTypeName, MethodName);
 		Method m=findMethodInClass(MethodName, CalleeClass);
 		if(m==null)
 			throw new NoMethodFoundInClass(CalleeClass.name, MethodName, this);
 		if(!MatchArgs(m, argNames))
 			throw new IllegalArguments(m, this);
-		if(m.OwnerClass==CoolClass.coolSelf_TYPE)
-			return CurrentClassName;
+		if(m.ReturnType==CoolClass.coolSelf_TYPE)
+			if(FatherTypeName!=null)
+				if(findMethodInClass(MethodName, findCoolClassByName(FatherTypeName, classList))!=null)
+					return FatherTypeName;
+				else
+					throw new NoMethodFoundInClass(FatherTypeName, MethodName, this);
+			else
+				return TypeNameOfExpr0;
 		else
-			return m.OwnerClass.name;
+			return m.ReturnType.name;
 	}
 
-	private CoolClass determineCalleeClass(String Cname, String pname)
-			throws NoClassFound_Name, InvalidInheritance
+	public int getLineNumber() { return LineNumber; }
+
+	private CoolClass determineCalleeClass(String Cname, String pname, String MethodName)
+			throws NoClassFound_Name, InvalidInheritance, IllegalSelfType
 	{
 		CoolClass currentClass=findCoolClassByName(Cname, classList);
 		assert currentClass!=null;
-		if(pname==null || Cname.equals(pname) || pname.equals(CoolClass.coolSelf_TYPE.name))
+		if(pname==null || Cname.equals(pname))
 			return currentClass;
+		if(pname.equals(CoolClass.coolSelf_TYPE.name))
+			throw new IllegalSelfType(MethodName, this);
 		CoolClass parent=findCoolClassByName(pname, classList);
 		if(parent==null)
 			throw new NoClassFound_Name(pname, this);
@@ -370,6 +381,7 @@ public class AnalizerSemantic {
 			throw new InvalidInheritance(Cname, pname, this);
 		return parent;
 	}
+
 	private Method findMethodInClass(String MethodName, CoolClass c)
 	{
 		Method result;
@@ -876,7 +888,16 @@ public class AnalizerSemantic {
 
 	public static abstract class SemanticError extends Throwable {
 		public static final long serialVersionUID = 100L;
-		public SemanticError(AnalizerSemantic as)	{ as.SemanticErrorFound=true; }
+		private Integer LineNumber;
+		public SemanticError(AnalizerSemantic as)	{ as.SemanticErrorFound=true; LineNumber=as.LineNumber; }
+		public String toString()
+		{
+			if(LineNumber!=AnalizerSemantic.EOF_LineNumber)
+				return ("Error at line: "+LineNumber.toString()+"\n"+declaration()+"\n");
+			else
+				return ("Error at end of file: \n"+declaration()+"\n");
+		}
+		public abstract String declaration();
 	}
 	public static class LoopException extends SemanticError{
 		public static final long serialVersionUID = 101L;
@@ -885,9 +906,10 @@ public class AnalizerSemantic {
 			super(as);
 			className = n;
 		}
-		public String toString(){
+		public String declaration(){
 			return "The following class caused a loop: "+className+"\n";
 		}
+		public String toString()	{ return super.toString(); }
 	}
 	public static class DuplicateClassX extends SemanticError{
 		public static final long serialVersionUID = 102L;
@@ -896,10 +918,11 @@ public class AnalizerSemantic {
 			super(as);
 			className = n;
 		}
-		public String toString()
+		public String declaration()
 		{
 			return "The following class was already decleared : "+className+"\n";
 		}
+		public String toString()	{ return super.toString(); }
 	}
 	public static class DanglingClassException extends SemanticError{
 		public static final long serialVersionUID = 103L;
@@ -909,18 +932,20 @@ public class AnalizerSemantic {
 			super(as);
 			list=l;
 		}
-		public String toString(){
+		public String declaration(){
 			String result;
 			result="The classes with these name are expected:\n";
 			for(int i=0; i<list.size(); ++i)
 				result=result+list.get(i).name+", ";
 			return result;
 		}
+		public String toString()	{ return super.toString(); }
 	}
 	public static class NoMainException extends SemanticError{
 		public static final long serialVersionUID = 104L;
 		public NoMainException(AnalizerSemantic as)	{ super(as); }
-		public String toString()	{ return "No Main class was found.\n"; }
+		public String declaration()	{ return "No Main class with main Method was found.\n"; }
+		public String toString()	{ return super.toString(); }
 	}
 	public static class DuplicateVariableName extends SemanticError
 	{
@@ -931,10 +956,11 @@ public class AnalizerSemantic {
 			super(as);
 			dupname=n;
 		}
-		public String toString()
+		public String declaration()
 		{
 			return ("A variable with name "+dupname+" was already declared in this scope.");
 		}
+		public String toString()	{ return super.toString(); }
 	}
 	public static class DuplicateMethodName extends SemanticError
 	{
@@ -945,10 +971,11 @@ public class AnalizerSemantic {
 			super(as);
 			DupMethodName=n;
 		}
-		public String toString()
+		public String declaration()
 		{
 			return ("redefinition of method with name: "+DupMethodName+" . not override.");
 		}
+		public String toString()	{ return super.toString(); }
 	}
 	public static class KeyWordName extends SemanticError
 	{
@@ -959,10 +986,11 @@ public class AnalizerSemantic {
 			super(as);
 			InvalidName=n;
 		}
-		public String toString()
+		public String declaration()
 		{
 			return ("The name: "+InvalidName+" is a keyword.");
 		}
+		public String toString()	{ return super.toString(); }
 	}
 	public static class FirstPassUnsuccessful extends SemanticError
 	{
@@ -971,7 +999,8 @@ public class AnalizerSemantic {
 		{
 			super(as);
 		}
-		public String toString()	{return "First commit unsuccessfull because of the mentioned errors.";}
+		public String declaration()	{return "First commit unsuccessfull because of the mentioned errors.";}
+		public String toString()	{ return super.toString(); }
 	}
 	public static class UndefinedVar extends SemanticError
 	{
@@ -982,10 +1011,11 @@ public class AnalizerSemantic {
 			super(as);
 			UndefinedID=varName;
 		}
-		public String toString()
+		public String declaration()
 		{
 			return ("The variable with name: "+UndefinedID+" has not been declared in this scope.");
 		}
+		public String toString()	{ return super.toString(); }
 	}
 	public static class SelfNameEx extends SemanticError
 	{
@@ -994,10 +1024,11 @@ public class AnalizerSemantic {
 		{
 			super(as);
 		}
-		public String toString()
+		public String declaration()
 		{
 			return "The name cannot be self.";
 		}
+		public String toString()	{ return super.toString(); }
 	}
 	public static class CaseDuplicateType extends SemanticError
 	{
@@ -1010,10 +1041,11 @@ public class AnalizerSemantic {
 			varName=name;
 			varTypeName=tName;
 		}
-		public String toString()
+		public String declaration()
 		{
 			return ("In case statement we cannot have duplication in type. the following variable caused error: "+varName+" : "+varTypeName+" .");
 		}
+		public String toString()	{ return super.toString(); }
 	}
 	public static class TypeConflict extends SemanticError
 	{
@@ -1026,10 +1058,11 @@ public class AnalizerSemantic {
 			Tname1=t1;
 			Tname2=t2;
 		}
-		public String toString()
+		public String declaration()
 		{
 			return ("The followin type names have conflict: "+Tname1+" & "+Tname2+" .");
 		}
+		public String toString()	{ return super.toString(); }
 	}
 	public static class InvalidInheritance extends SemanticError
 	{
@@ -1042,10 +1075,11 @@ public class AnalizerSemantic {
 			Name1=n1;
 			Name2=n2;
 		}
-		public String toString()
+		public String declaration()
 		{
 			return ("The Class "+Name1+" is not a child of "+Name2+" .");
 		}
+		public String toString()	{ return super.toString(); }
 	}
 	public static class NoClassFound_Name extends SemanticError
 	{
@@ -1056,10 +1090,11 @@ public class AnalizerSemantic {
 			super(as);
 			Cname=n;
 		}
-		public String toString()
+		public String declaration()
 		{
 			return ("The class with name: "+Cname+" has not been defined.");
 		}
+		public String toString()	{ return super.toString(); }
 	}
 	public static class NoMethodFoundInClass extends SemanticError
 	{
@@ -1076,6 +1111,7 @@ public class AnalizerSemantic {
 		{
 			return ("The class "+Cname+" does not have a method with name: "+Mname+" .");
 		}
+		public String toString()	{ return super.toString(); }
 	}
 	public static class IllegalSelfType extends SemanticError
 	{
@@ -1086,10 +1122,11 @@ public class AnalizerSemantic {
 			super(as);
 			Name=n;
 		}
-		public String decalaraion()
+		public String declaration()
 		{
-			return ("Cannot name this variable as SELF_TYPE: "+Name+" .");
+			return ("This Name cannot be declared as SELF_TYPE: "+Name+" .");
 		}
+		public String toString()	{ return super.toString(); }
 	}
 	public static class IllegalArguments extends SemanticError
 	{
@@ -1106,6 +1143,10 @@ public class AnalizerSemantic {
 			for(int i=0; i<M.args.size(); ++i)
 				argTypes+=(M.args.get(i).Type.name+", ");
 			return ("The method "+M.Name+" needs arguments of following list:\n"+argTypes);
+		}
+		public String toString()
+		{
+			return super.toString();
 		}
 	}
 }

@@ -20,7 +20,7 @@ public class Main{
 		AnalizerSemantic inst = AnalizerSemantic.getInstance();
 		
 		parser.program();
-		System.out.println(AnalizerSemantic.getInstance().toString());
+		//System.out.println(AnalizerSemantic.getInstance().toString());
 		if(inst.hasSemanticError()){
 			System.err.printf("Semantic Error\n");
 			return;

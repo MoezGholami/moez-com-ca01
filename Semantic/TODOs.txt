@@ -1,1 +1,2 @@
 MOSTAHAB: convert arraylists to hashmap
+boolean type of expr in if and while

@@ -1,5 +1,9 @@
 import java.util.ArrayList;
 
+import javax.sound.sampled.Line;
+
+import org.antlr.runtime.MismatchedNotSetException;
+
 public class AnalizerSemantic {
 	private ArrayList<CoolClass> classList;
 	private ArrayList<CoolClass> expectingClassList;
@@ -53,9 +57,10 @@ public class AnalizerSemantic {
 		return SemanticErrorFound;
 	}
 
-	public void addClass(String Cname, String Pname) throws LoopException,DuplicateClassX, KeyWordName {
+	public void addClass(String Cname, String Pname, int ln) throws LoopException,DuplicateClassX, KeyWordName {
 		if(PassedTimes!=0)
 			return ;
+		LineNumber=ln;
 		if(Pname==null)
 			Pname = CoolClass.coolObject.name;
 		if(Pname.equals(CoolClass.coolSelf_TYPE.name))
@@ -76,11 +81,12 @@ public class AnalizerSemantic {
 		classList.add(incomming);
 	}
 
-	public ArrayList<Integer> addMethod(String OwnerClassName, String MethodName, String MethodTypeName, ArrayList<UnrecognizedTypeVar> RawArgs)
+	public ArrayList<Integer> addMethod(String OwnerClassName, String MethodName, String MethodTypeName, ArrayList<UnrecognizedTypeVar> RawArgs, int ln)
 			throws DuplicateVariableName, DuplicateMethodName, KeyWordName, SelfNameEx, IllegalSelfType
 	{
 		if(PassedTimes!=0)
 			return null;
+		LineNumber=ln;
 		assert !isKeyWord(OwnerClassName);
 		assert hasClassWithName(OwnerClassName, classList);
 		if(isKeyWord(MethodName))
@@ -97,10 +103,11 @@ public class AnalizerSemantic {
 		return inComingMethod.MainScope.ScopeKey;
 	}
 
-	public void addField(String ownerClassName, UnrecognizedTypeVar rawfield) throws DuplicateVariableName, KeyWordName, SelfNameEx
+	public void addField(String ownerClassName, UnrecognizedTypeVar rawfield, int ln) throws DuplicateVariableName, KeyWordName, SelfNameEx
 	{
 		if(PassedTimes!=0)
 			return ;
+		LineNumber=ln;
 		assert !isKeyWord(ownerClassName);
 		assert hasClassWithName(ownerClassName, classList);
 		Variable inComingField=new Variable(rawfield, this);
@@ -110,11 +117,11 @@ public class AnalizerSemantic {
 		owner.Fields.add(inComingField);
 	}
 
-	public void addScope(String ownerClassName, String motherMethodName, ArrayList<Integer> currentScopeKey)
+	public void addScope(String ownerClassName, String motherMethodName, ArrayList<Integer> currentScopeKey, int ln)
 	{
 		if(PassedTimes!=0)
 			return ;
-
+		LineNumber=ln;
 		assert !isKeyWord(ownerClassName);
 		assert !isKeyWord(motherMethodName);
 		CoolClass owner=findCoolClassByName(ownerClassName, classList);
@@ -132,12 +139,12 @@ public class AnalizerSemantic {
 	}
 
 	public void addVariable2Scope(String ownerClassName, String motherMethodName,
-			ArrayList<Integer> currentScopeKey, UnrecognizedTypeVar rawfield, int whichScope)
+			ArrayList<Integer> currentScopeKey, UnrecognizedTypeVar rawfield, int whichScope, int ln)
 					throws DuplicateVariableName, KeyWordName, CaseDuplicateType, SelfNameEx, IllegalSelfType
 	{
 		if(PassedTimes!=0)
 			return ;
-
+		LineNumber=ln;
 		assert !isKeyWord(ownerClassName);
 		assert !isKeyWord(motherMethodName);
 		CoolClass owner=findCoolClassByName(ownerClassName, classList);
@@ -152,6 +159,8 @@ public class AnalizerSemantic {
 		Variable inComingVariable=new Variable(rawfield, this);
 		if(Variable.hasVariableWithName(inComingVariable.Name, mother.args))
 			throw new DuplicateVariableName(inComingVariable.Name, this);
+		if(Variable.hasVariableWithName(rawfield.Name, owner.Fields))
+			throw new DuplicateVariableName(rawfield.Name, this);
 		Variable duplicateScopeVar=Variable.findVariableByName(inComingVariable.Name, s.VarList);
 		if(duplicateScopeVar!=null)
 			if(whichScope==addingToLetScope)
@@ -235,8 +244,9 @@ public class AnalizerSemantic {
 	}
 
 	public String LookUpVarType(String ownerClassName, String motherMethodName, ArrayList<Integer> currentScopeKey,
-			String searchingID) throws UndefinedVar
+			String searchingID, int ln) throws UndefinedVar
 	{
+		LineNumber=ln;
 		CoolClass owner=findCoolClassByName(ownerClassName, classList);
 		assert owner!=null;
 		Method mother=findMethodByName(motherMethodName, owner.MethodList);
@@ -260,7 +270,8 @@ public class AnalizerSemantic {
 		throw new UndefinedVar(searchingID, this);
 	}
 
-	public String TypeOfOperation(String arg1,String Operator,String arg2,String ClassName) throws KeyWordName, TypeConflict, NoClassFound_Name{
+	public String TypeOfOperation(String arg1,String Operator,String arg2,String ClassName, int ln) throws KeyWordName, TypeConflict, NoClassFound_Name{
+		LineNumber=ln;
 		if(Operator.equals("<-")){
 			assert(arg1!=null && arg2!=null);
 			if(arg1.equals(arg2))
@@ -268,11 +279,11 @@ public class AnalizerSemantic {
 			if(getPossibleClass(arg1).someFatherOf(getPossibleClass(arg2))){
 				return arg1;
 			}
-			System.err.printf("arg1 = %s\n",arg1);
-			System.err.printf("arg2 = %s\n",arg2);
-			System.err.printf("Operator = %s\n",Operator);
+			//System.err.printf("arg1 = %s\n",arg1);
+			//System.err.printf("arg2 = %s\n",arg2);
+			//System.err.printf("Operator = %s\n",Operator);
 			
-			//throw new TypeConflict("f","s",this);
+			throw new TypeConflict(arg1,arg2,this);
 		}
 		else if(Operator.equals("KWNEW") ){
 			if(CoolClass.coolSelf_TYPE.name.equals(arg1)){
@@ -296,20 +307,20 @@ public class AnalizerSemantic {
 			if(arg1.equals("Int") && arg2.equals("Int"))
 				return arg1;
 			if(arg1.equals("Int"))
-				throw new TypeConflict("f","s",this);
-				//throw new TypeConflict("Int",arg2,this);
-			throw new TypeConflict("s","f",this);
-			//throw new TypeConflict("Int",arg1,this);
+				//throw new TypeConflict("f","s",this);
+				throw new TypeConflict("Int",arg2,this);
+			//throw new TypeConflict("s","f",this);
+			throw new TypeConflict("Int",arg1,this);
 		}
 		else if(Operator.equals("<") || Operator.equals("<=")){
 			assert(arg1!=null && arg2!=null);
 			if(arg1.equals("Int") && arg2.equals("Int"))
 				return "Bool";
 			if(arg1.equals("Int"))
-				throw new TypeConflict("w","q",this);
-				//throw new TypeConflict("Int",arg2,this);
-			throw new TypeConflict("qwe","shq",this);
-			//throw new TypeConflict("Int",arg1,this);
+				//throw new TypeConflict("w","q",this);
+				throw new TypeConflict("Int",arg2,this);
+			//throw new TypeConflict("qwe","shq",this);
+			throw new TypeConflict("Int",arg1,this);
 		}
 		else if(Operator.equals("=")){
 			System.err.println("Equality test"+arg1+" "+arg2);
@@ -317,40 +328,40 @@ public class AnalizerSemantic {
 			if(arg1.equals("Int")){
 				if(arg2.equals("Int"))
 					return "Bool";
-				throw new TypeConflict("123","2rr2",this);
-				//throw new TypeConflict("Int",arg2,this);
+				//throw new TypeConflict("123","2rr2",this);
+				throw new TypeConflict("Int",arg2,this);
 			}
 			if(arg2.equals("Int"))
-				throw new TypeConflict("rty","yuuio",this);
-				//throw new TypeConflict("Int",arg1,this);
+				//throw new TypeConflict("rty","yuuio",this);
+				throw new TypeConflict("Int",arg1,this);
 			return "Bool";
 		}
 			
 		return "F";
 }
-
 	
-	public boolean addMethodReturnTypeCheck(String ReturnType,String TID) throws KeyWordName{
+	public void checkMethodReturnType(String ReturnType,String TID, int ln) throws KeyWordName, ReturnTypeMismatch{
+		LineNumber=ln;
 		if(TID.equals(ReturnType))
-			return true;
-		if(getPossibleClass(TID).someFatherOf(getPossibleClass(ReturnType))){
-			return true;
-		}
-		return false;
+			return ;
+		if(getPossibleClass(ReturnType).someFatherOf(getPossibleClass(TID)))
+			return ;
+		throw new ReturnTypeMismatch(ReturnType, TID, this);
 	}
 
 	public String TypeNameOfMethod(String TypeNameOfExpr0, String FatherTypeName, String MethodName,
-			ArrayList<String> argNames, String CurrentClassName)
+			ArrayList<String> argTypeNames, String CurrentClassName, int ln)
 					throws NoClassFound_Name, InvalidInheritance, NoMethodFoundInClass, IllegalArguments, UndefinedVar, IllegalSelfType
 	{
+		LineNumber=ln;
 		if(TypeNameOfExpr0==null)
 			TypeNameOfExpr0=CurrentClassName;
 		CoolClass CalleeClass = determineCalleeClass(TypeNameOfExpr0, FatherTypeName, MethodName);
 		Method m=findMethodInClass(MethodName, CalleeClass);
 		if(m==null)
 			throw new NoMethodFoundInClass(CalleeClass.name, MethodName, this);
-		if(!MatchArgs(m, argNames))
-			throw new IllegalArguments(m, this);
+		if(!MatchArgs(m, argTypeNames))
+			throw new IllegalArguments(m, argTypeNames, this);
 		if(m.ReturnType==CoolClass.coolSelf_TYPE)
 			if(FatherTypeName!=null)
 				if(findMethodInClass(MethodName, findCoolClassByName(FatherTypeName, classList))!=null)
@@ -364,6 +375,14 @@ public class AnalizerSemantic {
 	}
 
 	public int getLineNumber() { return LineNumber; }
+
+	public void CheckBoolPredicate(String PredType, int ln) throws NotBoolPredicate
+	{
+		LineNumber=ln;
+		if(!PredType.equals(CoolClass.coolBool.name))
+			throw new NotBoolPredicate(PredType, this);
+		return ;
+	}
 
 	private CoolClass determineCalleeClass(String Cname, String pname, String MethodName)
 			throws NoClassFound_Name, InvalidInheritance, IllegalSelfType
@@ -393,15 +412,14 @@ public class AnalizerSemantic {
 		return findMethodInClass(MethodName, c.Ancestor);
 	}
 
-	private boolean MatchArgs(Method m, ArrayList<String> argNames) throws UndefinedVar
+	private boolean MatchArgs(Method m, ArrayList<String> argTypeNames) throws UndefinedVar
 	{
-		if(argNames==null)
+		if(argTypeNames==null)
 			return false;
-		if(argNames.size()!=m.args.size())
+		if(argTypeNames.size()!=m.args.size())
 			return false;
-		for(int i=0; i<argNames.size(); ++i)
-			if(!LookUpVarType(m.OwnerClass.name, m.Name, m.MainScope.ScopeKey, argNames.get(i)).equalsIgnoreCase(
-					m.args.get(i).Type.name))
+		for(int i=0; i<argTypeNames.size(); ++i)
+			if(m.args.get(i).Type!=findCoolClassByName(argTypeNames.get(i), classList))
 				return false;
 		return true;
 	}
@@ -826,6 +844,8 @@ public class AnalizerSemantic {
 		}
 		public boolean someFatherOf(CoolClass c)//father is not brother!!!
 		{
+			if(c==null)
+				return false;
 			if(c==coolObject)
 				return false;
 			if(this==c.Ancestor)
@@ -958,7 +978,7 @@ public class AnalizerSemantic {
 		}
 		public String declaration()
 		{
-			return ("A variable with name "+dupname+" was already declared in this scope.");
+			return ("Variable with name "+dupname+" was already declared in this scope.");
 		}
 		public String toString()	{ return super.toString(); }
 	}
@@ -1132,21 +1152,57 @@ public class AnalizerSemantic {
 	{
 		public static final long serialVersionUID = 117L;
 		Method M;
-		public IllegalArguments(Method m, AnalizerSemantic as)
+		ArrayList<String> ArgTypeNames;
+		public IllegalArguments(Method m, ArrayList<String> argTnames, AnalizerSemantic as)
 		{
 			super(as);
 			M=m;
+			ArgTypeNames=argTnames;
 		}
 		public String declaration()
 		{
-			String argTypes="";
+			String argTypes=M.args.size()==0?"[]":"";
 			for(int i=0; i<M.args.size(); ++i)
 				argTypes+=(M.args.get(i).Type.name+", ");
-			return ("The method "+M.Name+" needs arguments of following list:\n"+argTypes);
+			return ("The method "+M.Name+" needs arguments of following list:\n"+argTypes+"\nBut provided: "+ArgTypeNames.toString());
 		}
 		public String toString()
 		{
 			return super.toString();
 		}
+	}
+
+	public static class NotBoolPredicate extends SemanticError
+	{
+		public static final long serialVersionUID = 118L;
+		String IllegalType;
+		public NotBoolPredicate(String tname, AnalizerSemantic as)
+		{
+			super(as);
+			IllegalType=tname;
+		}
+		public String declaration()
+		{
+			return ("Type of predicate most be boolean but "+IllegalType+" provided.");
+		}
+		public String toString()	{ return super.toString(); }
+	}
+
+	public static class ReturnTypeMismatch extends SemanticError
+	{
+		public static final long serialVersionUID = 119L;
+		String ReturnType;
+		String Provided;
+		public ReturnTypeMismatch(String returnType, String provided, AnalizerSemantic as)
+		{
+			super(as);
+			ReturnType=returnType;
+			Provided=provided;
+		}
+		public String declaration()
+		{
+			return ("Type of defining method most be "+ReturnType+" but "+Provided+" provided.");
+		}
+		public String toString()	{ return super.toString(); }
 	}
 }

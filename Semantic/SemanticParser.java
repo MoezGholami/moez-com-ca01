@@ -161,7 +161,7 @@ public class SemanticParser extends Parser {
 						setState(45); Pname = match(TID).getText();
 					}
 				}
-				semAnalizer.addClass(CurClassName, Pname);
+				semAnalizer.addClass(CurClassName, Pname, _ctx.getStart().getLine());
 				setState(48); match(T__4);
 				setState(54);
 				_errHandler.sync(this);
@@ -256,7 +256,7 @@ public class SemanticParser extends Parser {
 						setState(71); match(T__16);
 						setState(72); match(T__10);
 						setState(73); CurrMethodTypeName=match(TID).getText();
-						CurrScopeKey = semAnalizer.addMethod(CurClassName, CurrMethodName, CurrMethodTypeName, VarList);
+						CurrScopeKey = semAnalizer.addMethod(CurClassName, CurrMethodName, CurrMethodTypeName, VarList, _ctx.getStart().getLine());
 						setState(74); match(T__4);
 						setState(75); expr();
 						setState(76); match(T__1);
@@ -270,7 +270,7 @@ public class SemanticParser extends Parser {
 						setState(78); CurrVarName=match(OID).getText();
 						setState(79); match(T__10);
 						setState(80); CurrVarTypeName=match(TID).getText();	
-						semAnalizer.addField(CurClassName, new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName));
+						semAnalizer.addField(CurClassName, new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName), _ctx.getStart().getLine());
 						setState(83);
 						_la = _input.LA(1);
 						if (_la==T__0) {
@@ -414,13 +414,13 @@ public class SemanticParser extends Parser {
 					{
 						//new Scope detected (let)
 						int NumberOfLetScopes=1;
-						semAnalizer.addScope(CurClassName, CurrMethodName, CurrScopeKey);
+						semAnalizer.addScope(CurClassName, CurrMethodName, CurrScopeKey, _ctx.getStart().getLine());
 						setState(105); match(KWLET);
 						setState(106); CurrVarName=match(OID).getText();
 						setState(107); match(T__10);
 						setState(108); CurrVarTypeName=match(TID).getText();
 						setState(111);
-						semAnalizer.addVariable2Scope(CurClassName, CurrMethodName, CurrScopeKey,new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName), AnalizerSemantic.addingToLetScope);
+						semAnalizer.addVariable2Scope(CurClassName, CurrMethodName, CurrScopeKey,new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName), AnalizerSemantic.addingToLetScope, _ctx.getStart().getLine());
 						_la = _input.LA(1);
 						if (_la==T__0) {
 							{
@@ -434,14 +434,14 @@ public class SemanticParser extends Parser {
 						while (_la==T__15) {
 							{
 								{
-									semAnalizer.addScope(CurClassName, CurrMethodName, CurrScopeKey);
+									semAnalizer.addScope(CurClassName, CurrMethodName, CurrScopeKey, _ctx.getStart().getLine());
 									NumberOfLetScopes++;
 									setState(113); match(T__15);
 									setState(114); CurrVarName=match(OID).getText();
 									setState(115); match(T__10);
 									setState(116); CurrVarTypeName=match(TID).getText();
 									setState(119);
-									semAnalizer.addVariable2Scope(CurClassName, CurrMethodName, CurrScopeKey,new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName),AnalizerSemantic.addingToLetScope);
+									semAnalizer.addVariable2Scope(CurClassName, CurrMethodName, CurrScopeKey,new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName),AnalizerSemantic.addingToLetScope, _ctx.getStart().getLine());
 									_la = _input.LA(1);
 									if (_la==T__0) {
 										{
@@ -470,7 +470,7 @@ public class SemanticParser extends Parser {
 						setState(130); match(KWOF);
 						setState(138);
 						_errHandler.sync(this);
-						semAnalizer.addScope(CurClassName, CurrMethodName, CurrScopeKey);
+						semAnalizer.addScope(CurClassName, CurrMethodName, CurrScopeKey, _ctx.getStart().getLine());
 						_la = _input.LA(1);
 						do {
 							{
@@ -479,7 +479,7 @@ public class SemanticParser extends Parser {
 									setState(132); match(T__10);
 									setState(133); CurrVarTypeName=match(TID).getText();
 									setState(134); match(T__17);
-									semAnalizer.addVariable2Scope(CurClassName, CurrMethodName, CurrScopeKey,new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName), AnalizerSemantic.addingToCaseScope);
+									semAnalizer.addVariable2Scope(CurClassName, CurrMethodName, CurrScopeKey,new AnalizerSemantic.UnrecognizedTypeVar(CurrVarName, CurrVarTypeName), AnalizerSemantic.addingToCaseScope, _ctx.getStart().getLine());
 									setState(135); expr();
 									setState(136); match(T__6);
 								}

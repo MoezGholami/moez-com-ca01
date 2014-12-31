@@ -18,7 +18,6 @@ public class TypeCheckerParser extends Parser {
 	String CurClassName = null, CurrMethodName=null, CurrVarName=null, CurrMethodTypeName=null, CurrVarTypeName=null, CurrExprType=null, TempVarType;
 	ArrayList<AnalizerSemantic.UnrecognizedTypeVar> VarList;
 	ArrayList<Integer> CurrScopeKey;
-	ArrayList<String>CaseTypeVariables,FunctionVariableList;
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
@@ -265,7 +264,7 @@ public class TypeCheckerParser extends Parser {
 						setState(74); match(T__4);
 						setState(75); CurrExprType = expr().TypeName;
 						System.out.printf("methodType: %s && CurrExprReturned %s && CurrMethodName %s\n",CurrMethodTypeName,CurrExprType,CurrMethodName);
-						semAnalizer.addMethodReturnTypeCheck(CurrExprType, CurrMethodTypeName);
+						semAnalizer.checkMethodReturnType(CurrMethodTypeName, CurrExprType, _ctx.getStart().getLine());
 						setState(76); match(T__1);
 						semAnalizer.updateKeyWhenClosingScope(CurrScopeKey);
 					}
@@ -389,7 +388,7 @@ public class TypeCheckerParser extends Parser {
 	}
 
 	public final Expr1Context expr1() throws RecognitionException, AnalizerSemantic.NoClassFound_Name, AnalizerSemantic.InvalidInheritance, AnalizerSemantic.NoMethodFoundInClass, AnalizerSemantic.IllegalArguments, AnalizerSemantic.UndefinedVar, AnalizerSemantic.KeyWordName, AnalizerSemantic.TypeConflict,AnalizerSemantic.SemanticError { // done
-		System.err.println("expr1");
+		//System.err.println("expr1");
 		String TypeName=null;
 		Expr1Context _localctx = new Expr1Context(_ctx, getState());
 		enterRule(_localctx, 8, RULE_expr1);
@@ -401,7 +400,7 @@ public class TypeCheckerParser extends Parser {
 					enterOuterAlt(_localctx, 1);
 					{
 						setState(91); match(KWIF);
-						setState(92); expr();
+						setState(92); semAnalizer.CheckBoolPredicate(expr().TypeName, _ctx.getStart().getLine());
 						setState(93); match(KWTHEN);
 						setState(94); expr();
 						setState(95); match(KWELSE);
@@ -414,7 +413,7 @@ public class TypeCheckerParser extends Parser {
 					enterOuterAlt(_localctx, 2);
 					{
 						setState(99); match(KWWHILE);
-						setState(100); expr();
+						setState(100); semAnalizer.CheckBoolPredicate(expr().TypeName, _ctx.getStart().getLine());
 						setState(101); match(KWLOOP);
 						setState(102); expr();
 						setState(103); match(KWPOOL);
@@ -478,7 +477,7 @@ public class TypeCheckerParser extends Parser {
 				case 4:
 					enterOuterAlt(_localctx, 4);
 					{
-						CaseTypeVariables = new ArrayList<String>();
+						ArrayList<String> CaseTypeVariables = new ArrayList<String>();
 						setState(128); match(KWCASE);
 						setState(129); expr();
 						setState(130); match(KWOF);
@@ -540,7 +539,7 @@ public class TypeCheckerParser extends Parser {
 					enterOuterAlt(_localctx, 7);
 					{
 						// OID ( expr ( expr ) + )
-						FunctionVariableList = new ArrayList<String>();
+						ArrayList<String> FunctionVariableList = new ArrayList<String>();
 						setState(158); CurrMethodName = match(OID).getText();
 						setState(159); match(T__9);
 						setState(168);
@@ -555,7 +554,8 @@ public class TypeCheckerParser extends Parser {
 									{
 										{
 											setState(161); match(T__15);
-											setState(162); FunctionVariableList.add(expr().TypeName);
+											expr();
+											setState(162); FunctionVariableList.add("a");
 										}
 									}
 									setState(167);
@@ -564,7 +564,8 @@ public class TypeCheckerParser extends Parser {
 								}
 							}
 						}
-						TypeName = semAnalizer.TypeNameOfMethod(null,null,CurrMethodName,FunctionVariableList,CurClassName);
+						System.err.println("In expr1: method: "+FunctionVariableList.toString());
+						TypeName = semAnalizer.TypeNameOfMethod(null,null,CurrMethodName,FunctionVariableList,CurClassName, _ctx.getStart().getLine());
 						setState(170); match(T__16);
 					}
 					break;
@@ -574,8 +575,8 @@ public class TypeCheckerParser extends Parser {
 						setState(171); CurrVarName = match(OID).getText();
 						setState(172); match(T__0);
 						setState(173);
-						TempVarType = semAnalizer.LookUpVarType(CurClassName, CurrMethodName, CurrScopeKey, CurrVarName);
-						TypeName = semAnalizer.TypeOfOperation(TempVarType,"<-",expr().TypeName,CurClassName);
+						TempVarType = semAnalizer.LookUpVarType(CurClassName, CurrMethodName, CurrScopeKey, CurrVarName, _ctx.getStart().getLine());
+						TypeName = semAnalizer.TypeOfOperation(TempVarType,"<-",expr().TypeName,CurClassName, _ctx.getStart().getLine());
 					}
 					break;
 				case 9:
@@ -583,13 +584,13 @@ public class TypeCheckerParser extends Parser {
 					{
 						setState(174); match(KWNEW);
 						setState(175);
-						TypeName = semAnalizer.TypeOfOperation( match(TID).getText(),"KWNEW",null,CurClassName);
+						TypeName = semAnalizer.TypeOfOperation( match(TID).getText(),"KWNEW",null,CurClassName, _ctx.getStart().getLine());
 					}
 					break;
 				case 10:
 					enterOuterAlt(_localctx, 10);
 					{
-						setState(176); TypeName = semAnalizer.LookUpVarType(CurClassName,CurrMethodName,CurrScopeKey,match(OID).getText());
+						setState(176); TypeName = semAnalizer.LookUpVarType(CurClassName,CurrMethodName,CurrScopeKey,match(OID).getText(), _ctx.getStart().getLine());
 					}
 					break;
 				case 11:
@@ -669,7 +670,7 @@ public class TypeCheckerParser extends Parser {
 	}
 
 	public final Expr2Context expr2() throws RecognitionException , AnalizerSemantic.SemanticError { // done
-		System.err.println("expr2");
+		//System.err.println("expr2");
 		String TypeName=null;
 		Expr2Context _localctx = new Expr2Context(_ctx, getState());
 		enterRule(_localctx, 10, RULE_expr2);
@@ -722,7 +723,7 @@ public class TypeCheckerParser extends Parser {
 	}
 
 	public final Expr2pContext expr2p(String exprType) throws RecognitionException,AnalizerSemantic.SemanticError { // done
-		System.err.println("expr2p");
+		//System.err.println("expr2p");
 		String TypeName=null;
 		Expr2pContext _localctx = new Expr2pContext(_ctx, getState());
 		enterRule(_localctx, 12, RULE_expr2p);
@@ -733,7 +734,7 @@ public class TypeCheckerParser extends Parser {
 				case 1:
 					enterOuterAlt(_localctx, 1);
 					{
-						FunctionVariableList = new ArrayList<String>();
+						ArrayList<String> FunctionVariableList = new ArrayList<String>();
 						setState(191);
 						_la = _input.LA(1);
 						if (_la==T__11) {
@@ -763,7 +764,6 @@ public class TypeCheckerParser extends Parser {
 									}
 									setState(203);
 									_errHandler.sync(this);
-									TypeName = semAnalizer.TypeNameOfMethod(exprType,CurrVarTypeName,CurrVarName,FunctionVariableList,CurClassName);
 									_la = _input.LA(1);
 								}
 							}
@@ -771,6 +771,10 @@ public class TypeCheckerParser extends Parser {
 
 						setState(206); match(T__16);
 						setState(207); TypeName = expr2p(exprType).TypeName; // Here
+						
+						System.err.println("expr2: currTypeName: "+exprType+" currMethod: "+CurrVarName+" currVarTypeName: "+CurrVarTypeName+ "return TypeName: "+TypeName);
+						TypeName = semAnalizer.TypeNameOfMethod(exprType,CurrVarTypeName,CurrVarName,FunctionVariableList,CurClassName, _ctx.getStart().getLine());
+						
 					}
 					break;
 				case 2:
@@ -817,7 +821,7 @@ public class TypeCheckerParser extends Parser {
 	}
 
 	public final Expr3Context expr3() throws RecognitionException, AnalizerSemantic.KeyWordName, AnalizerSemantic.TypeConflict,AnalizerSemantic.SemanticError { // done
-		System.err.println("expr3");
+		//System.err.println("expr3");
 		String TypeName=null;
 		Expr3Context _localctx = new Expr3Context(_ctx, getState());
 		enterRule(_localctx, 14, RULE_expr3);
@@ -848,7 +852,7 @@ public class TypeCheckerParser extends Parser {
 					enterOuterAlt(_localctx, 2);
 					{
 						setState(212); match(T__2);
-						setState(213); TypeName = semAnalizer.TypeOfOperation(expr3().TypeName,"~",null,CurClassName);
+						setState(213); TypeName = semAnalizer.TypeOfOperation(expr3().TypeName,"~",null,CurClassName, _ctx.getStart().getLine());
 						//assert TypeName != null;
 					}
 					break;
@@ -856,7 +860,7 @@ public class TypeCheckerParser extends Parser {
 					enterOuterAlt(_localctx, 3);
 					{
 						setState(214); match(KWISVOID);
-						setState(215); TypeName = semAnalizer.TypeOfOperation(expr3().TypeName,"KWISVOID",null,CurClassName);
+						setState(215); TypeName = semAnalizer.TypeOfOperation(expr3().TypeName,"KWISVOID",null,CurClassName, _ctx.getStart().getLine());
 						//assert TypeName != null;
 					}
 					break;
@@ -900,7 +904,7 @@ public class TypeCheckerParser extends Parser {
 	}
 
 	public final Expr4Context expr4() throws RecognitionException, AnalizerSemantic.KeyWordName, AnalizerSemantic.TypeConflict,AnalizerSemantic.SemanticError { // done
-		System.err.println("expr4");
+		//System.err.println("expr4");
 		String TypeName=null;
 		Expr4Context _localctx = new Expr4Context(_ctx, getState());
 		enterRule(_localctx, 16, RULE_expr4);
@@ -947,7 +951,7 @@ public class TypeCheckerParser extends Parser {
 	}
 
 	public final Expr4pContext expr4p(String exprType) throws RecognitionException, AnalizerSemantic.KeyWordName, AnalizerSemantic.TypeConflict,AnalizerSemantic.SemanticError { // done
-		System.err.println("expr4p");
+		//System.err.println("expr4p");
 		String TypeName=null;
 		Expr4pContext _localctx = new Expr4pContext(_ctx, getState());
 		enterRule(_localctx, 18, RULE_expr4p);
@@ -959,7 +963,7 @@ public class TypeCheckerParser extends Parser {
 					{
 						setState(221); match(T__3);
 						setState(222); CurrExprType = expr3().TypeName;
-						setState(223); TypeName = expr4p(semAnalizer.TypeOfOperation(exprType,"/",CurrExprType,CurClassName)).TypeName;
+						setState(223); TypeName = expr4p(semAnalizer.TypeOfOperation(exprType,"/",CurrExprType,CurClassName, _ctx.getStart().getLine())).TypeName;
 					}
 					break;
 				case 2:
@@ -967,7 +971,7 @@ public class TypeCheckerParser extends Parser {
 					{
 						setState(225); match(T__12);
 						setState(226); CurrExprType = expr3().TypeName;
-						setState(227); TypeName = expr4p(semAnalizer.TypeOfOperation(exprType,"*",CurrExprType,CurClassName)).TypeName;
+						setState(227); TypeName = expr4p(semAnalizer.TypeOfOperation(exprType,"*",CurrExprType,CurClassName, _ctx.getStart().getLine())).TypeName;
 					}
 					break;
 				case 3:
@@ -1013,7 +1017,7 @@ public class TypeCheckerParser extends Parser {
 	}
 
 	public final Expr5Context expr5() throws RecognitionException, AnalizerSemantic.KeyWordName, AnalizerSemantic.TypeConflict,AnalizerSemantic.SemanticError { // done
-		System.err.println("expr5");
+		//System.err.println("expr5");
 		String TypeName=null;
 		Expr5Context _localctx = new Expr5Context(_ctx, getState());
 		enterRule(_localctx, 20, RULE_expr5);
@@ -1061,7 +1065,7 @@ public class TypeCheckerParser extends Parser {
 	}
 
 	public final Expr5pContext expr5p(String exprType) throws RecognitionException,AnalizerSemantic.KeyWordName, AnalizerSemantic.TypeConflict,AnalizerSemantic.SemanticError { //done
-		System.err.println("expr5p");
+		//System.err.println("expr5p");
 		String TypeName=null;
 		Expr5pContext _localctx = new Expr5pContext(_ctx, getState());
 		enterRule(_localctx, 22, RULE_expr5p);
@@ -1073,7 +1077,7 @@ public class TypeCheckerParser extends Parser {
 					{
 						setState(235); match(T__14);
 						setState(236); CurrExprType = expr4().TypeName;
-						setState(237); TypeName = expr5p(semAnalizer.TypeOfOperation(exprType,"+",CurrExprType,CurClassName)).TypeName;
+						setState(237); TypeName = expr5p(semAnalizer.TypeOfOperation(exprType,"+",CurrExprType,CurClassName, _ctx.getStart().getLine())).TypeName;
 					}
 					break;
 				case 2:
@@ -1081,7 +1085,7 @@ public class TypeCheckerParser extends Parser {
 					{
 						setState(239); match(T__13);
 						setState(240); CurrExprType = expr4().TypeName;
-						setState(241); TypeName = expr5p(semAnalizer.TypeOfOperation(exprType,"-",CurrExprType,CurClassName)).TypeName;
+						setState(241); TypeName = expr5p(semAnalizer.TypeOfOperation(exprType,"-",CurrExprType,CurClassName, _ctx.getStart().getLine())).TypeName;
 					}
 					break;
 				case 3:
@@ -1127,7 +1131,7 @@ public class TypeCheckerParser extends Parser {
 	}
 
 	public final Expr6Context expr6() throws RecognitionException, AnalizerSemantic.KeyWordName, AnalizerSemantic.TypeConflict,AnalizerSemantic.SemanticError { //done
-		System.err.println("expr6");
+		//System.err.println("expr6");
 		String TypeName=null;
 		Expr6Context _localctx = new Expr6Context(_ctx, getState());
 		enterRule(_localctx, 24, RULE_expr6);
@@ -1174,7 +1178,7 @@ public class TypeCheckerParser extends Parser {
 	}
 
 	public final Expr6pContext expr6p(String exprType) throws RecognitionException, AnalizerSemantic.KeyWordName, AnalizerSemantic.TypeConflict,AnalizerSemantic.SemanticError { // done
-		System.err.println("expr6p");
+		//System.err.println("expr6p");
 		String TypeName=null;
 		Expr6pContext _localctx = new Expr6pContext(_ctx, getState());
 		enterRule(_localctx, 26, RULE_expr6p);
@@ -1186,7 +1190,7 @@ public class TypeCheckerParser extends Parser {
 					{
 						setState(249); match(T__8);
 						setState(250); CurrExprType = expr5().TypeName;
-						setState(251); TypeName = expr6p(semAnalizer.TypeOfOperation(exprType,"<",CurrExprType,CurClassName)).TypeName;
+						setState(251); TypeName = expr6p(semAnalizer.TypeOfOperation(exprType,"<",CurrExprType,CurClassName, _ctx.getStart().getLine())).TypeName;
 					}
 					break;
 				case 2:
@@ -1194,7 +1198,7 @@ public class TypeCheckerParser extends Parser {
 					{
 						setState(253); match(T__5);
 						setState(254); CurrExprType = expr5().TypeName;
-						setState(255); TypeName = expr6p(semAnalizer.TypeOfOperation(exprType,"<=",CurrExprType,CurClassName)).TypeName;
+						setState(255); TypeName = expr6p(semAnalizer.TypeOfOperation(exprType,"<=",CurrExprType,CurClassName, _ctx.getStart().getLine())).TypeName;
 					}
 					break;
 				case 3:
@@ -1202,7 +1206,7 @@ public class TypeCheckerParser extends Parser {
 					{
 						setState(257); match(T__7);
 						setState(258); CurrExprType = expr5().TypeName;
-						setState(259); TypeName = expr6p(semAnalizer.TypeOfOperation(exprType,"=",CurrExprType,CurClassName)).TypeName;
+						setState(259); TypeName = expr6p(semAnalizer.TypeOfOperation(exprType,"=",CurrExprType,CurClassName, _ctx.getStart().getLine())).TypeName;
 					}
 					break;
 				case 4:
@@ -1249,7 +1253,7 @@ public class TypeCheckerParser extends Parser {
 	}
 
 	public final ExprContext expr() throws RecognitionException, AnalizerSemantic.KeyWordName, AnalizerSemantic.TypeConflict,AnalizerSemantic.SemanticError { //done
-		System.err.println("expr");
+		//System.err.println("expr");
 		String TypeName=null;
 		ExprContext _localctx = new ExprContext(_ctx, getState());
 		enterRule(_localctx, 28, RULE_expr);

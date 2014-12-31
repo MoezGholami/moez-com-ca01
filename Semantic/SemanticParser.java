@@ -80,7 +80,7 @@ public class SemanticParser extends Parser {
 				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitProgram(this);
 			}
 	}
-	public final ProgramContext program() throws RecognitionException {
+	public final ProgramContext program() throws RecognitionException, AnalizerSemantic.SemanticError {
 		ProgramContext _localctx = new ProgramContext(_ctx, getState());
 		enterRule(_localctx, 0, RULE_program);
 		int _la;
@@ -108,8 +108,6 @@ public class SemanticParser extends Parser {
 			_localctx.exception = re;
 			_errHandler.reportError(this, re);
 			_errHandler.recover(this, re);
-		} catch (AnalizerSemantic.SemanticError e) {
-			System.err.println(e.toString());
 		}
 		finally {
 			exitRule();
@@ -142,7 +140,7 @@ public class SemanticParser extends Parser {
 				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitPclass(this);
 			}
 	}
-	public final PclassContext pclass() throws RecognitionException {
+	public final PclassContext pclass() throws RecognitionException, AnalizerSemantic.SemanticError {
 		PclassContext _localctx = new PclassContext(_ctx, getState());
 		enterRule(_localctx, 2, RULE_pclass);
 		int _la;
@@ -185,9 +183,6 @@ public class SemanticParser extends Parser {
 			_errHandler.reportError(this, re);
 			_errHandler.recover(this, re);
 		}
-		catch (AnalizerSemantic.SemanticError e) {
-			System.err.printf(e.toString());
-		}
 		finally {
 			exitRule();
 		}
@@ -218,7 +213,7 @@ public class SemanticParser extends Parser {
 				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitFeature(this);
 			}
 	}
-	public final FeatureContext feature() throws RecognitionException {
+	public final FeatureContext feature() throws RecognitionException, AnalizerSemantic.SemanticError {
 		FeatureContext _localctx = new FeatureContext(_ctx, getState());
 		enterRule(_localctx, 4, RULE_feature);
 		int _la;
@@ -260,7 +255,7 @@ public class SemanticParser extends Parser {
 						setState(74); match(T__4);
 						setState(75); expr();
 						setState(76); match(T__1);
-						semAnalizer.updateKeyWhenClosingScope(CurrScopeKey);
+						semAnalizer.updateKeyWhenClosingScope(CurClassName, CurrMethodName, CurrScopeKey);
 					}
 					break;
 				case 2:
@@ -287,8 +282,6 @@ public class SemanticParser extends Parser {
 			_localctx.exception = re;
 			_errHandler.reportError(this, re);
 			_errHandler.recover(this, re);
-		} catch (AnalizerSemantic.SemanticError e) {
-			System.err.println(e.toString());
 		}
 		finally {
 			exitRule();
@@ -380,7 +373,7 @@ public class SemanticParser extends Parser {
 				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr1(this);
 			}
 	}
-	public final Expr1Context expr1() throws RecognitionException {
+	public final Expr1Context expr1() throws RecognitionException, AnalizerSemantic.SemanticError {
 		Expr1Context _localctx = new Expr1Context(_ctx, getState());
 		enterRule(_localctx, 8, RULE_expr1);
 		int _la;
@@ -459,7 +452,7 @@ public class SemanticParser extends Parser {
 						setState(126); match(KWIN);
 						setState(127); expr();
 						for(int i=0; i<NumberOfLetScopes; ++i)
-							semAnalizer.updateKeyWhenClosingScope(CurrScopeKey);
+							semAnalizer.updateKeyWhenClosingScope(CurClassName, CurrMethodName, CurrScopeKey);
 					}
 					break;
 				case 4:
@@ -489,7 +482,7 @@ public class SemanticParser extends Parser {
 							_la = _input.LA(1);
 						} while ( _la==OID );
 						setState(142); match(KWESAC);
-						semAnalizer.updateKeyWhenClosingScope(CurrScopeKey);
+						semAnalizer.updateKeyWhenClosingScope(CurClassName, CurrMethodName, CurrScopeKey);
 					}
 					break;
 				case 5:
@@ -613,8 +606,6 @@ public class SemanticParser extends Parser {
 			_localctx.exception = re;
 			_errHandler.reportError(this, re);
 			_errHandler.recover(this, re);
-		} catch (AnalizerSemantic.SemanticError e) {
-			System.err.println(e.toString());
 		}
 		finally {
 			exitRule();
@@ -641,7 +632,7 @@ public class SemanticParser extends Parser {
 				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr2(this);
 			}
 	}
-	public final Expr2Context expr2() throws RecognitionException {
+	public final Expr2Context expr2() throws RecognitionException, AnalizerSemantic.SemanticError {
 		Expr2Context _localctx = new Expr2Context(_ctx, getState());
 		enterRule(_localctx, 10, RULE_expr2);
 		try {
@@ -686,7 +677,7 @@ public class SemanticParser extends Parser {
 				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr2p(this);
 			}
 	}
-	public final Expr2pContext expr2p() throws RecognitionException {
+	public final Expr2pContext expr2p() throws RecognitionException, AnalizerSemantic.SemanticError {
 		Expr2pContext _localctx = new Expr2pContext(_ctx, getState());
 		enterRule(_localctx, 12, RULE_expr2p);
 		int _la;
@@ -770,7 +761,7 @@ public class SemanticParser extends Parser {
 				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr3(this);
 			}
 	}
-	public final Expr3Context expr3() throws RecognitionException {
+	public final Expr3Context expr3() throws RecognitionException, AnalizerSemantic.SemanticError {
 		Expr3Context _localctx = new Expr3Context(_ctx, getState());
 		enterRule(_localctx, 14, RULE_expr3);
 		try {
@@ -843,7 +834,7 @@ public class SemanticParser extends Parser {
 				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr4(this);
 			}
 	}
-	public final Expr4Context expr4() throws RecognitionException {
+	public final Expr4Context expr4() throws RecognitionException, AnalizerSemantic.SemanticError {
 		Expr4Context _localctx = new Expr4Context(_ctx, getState());
 		enterRule(_localctx, 16, RULE_expr4);
 		try {
@@ -883,7 +874,7 @@ public class SemanticParser extends Parser {
 				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr4p(this);
 			}
 	}
-	public final Expr4pContext expr4p() throws RecognitionException {
+	public final Expr4pContext expr4p() throws RecognitionException, AnalizerSemantic.SemanticError {
 		Expr4pContext _localctx = new Expr4pContext(_ctx, getState());
 		enterRule(_localctx, 18, RULE_expr4p);
 		try {
@@ -942,7 +933,7 @@ public class SemanticParser extends Parser {
 				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr5(this);
 			}
 	}
-	public final Expr5Context expr5() throws RecognitionException {
+	public final Expr5Context expr5() throws RecognitionException, AnalizerSemantic.SemanticError {
 		Expr5Context _localctx = new Expr5Context(_ctx, getState());
 		enterRule(_localctx, 20, RULE_expr5);
 		try {
@@ -982,7 +973,7 @@ public class SemanticParser extends Parser {
 				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr5p(this);
 			}
 	}
-	public final Expr5pContext expr5p() throws RecognitionException {
+	public final Expr5pContext expr5p() throws RecognitionException, AnalizerSemantic.SemanticError {
 		Expr5pContext _localctx = new Expr5pContext(_ctx, getState());
 		enterRule(_localctx, 22, RULE_expr5p);
 		try {
@@ -1041,7 +1032,7 @@ public class SemanticParser extends Parser {
 				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr6(this);
 			}
 	}
-	public final Expr6Context expr6() throws RecognitionException {
+	public final Expr6Context expr6() throws RecognitionException, AnalizerSemantic.SemanticError {
 		Expr6Context _localctx = new Expr6Context(_ctx, getState());
 		enterRule(_localctx, 24, RULE_expr6);
 		try {
@@ -1081,7 +1072,7 @@ public class SemanticParser extends Parser {
 				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr6p(this);
 			}
 	}
-	public final Expr6pContext expr6p() throws RecognitionException {
+	public final Expr6pContext expr6p() throws RecognitionException, AnalizerSemantic.SemanticError {
 		Expr6pContext _localctx = new Expr6pContext(_ctx, getState());
 		enterRule(_localctx, 26, RULE_expr6p);
 		try {
@@ -1150,7 +1141,7 @@ public class SemanticParser extends Parser {
 				if ( listener instanceof SemanticListener ) ((SemanticListener)listener).exitExpr(this);
 			}
 	}
-	public final ExprContext expr() throws RecognitionException {
+	public final ExprContext expr() throws RecognitionException, AnalizerSemantic.SemanticError {
 		ExprContext _localctx = new ExprContext(_ctx, getState());
 		enterRule(_localctx, 28, RULE_expr);
 		try {

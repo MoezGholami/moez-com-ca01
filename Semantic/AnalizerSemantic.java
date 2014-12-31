@@ -178,6 +178,7 @@ public class AnalizerSemantic {
 		if(PassedTimes==0)
 			return null;
 		Method temp=new Method(null, null, null, null);
+		//System.err.println(temp.MainScope.ScopeKey);
 		return (new ArrayList<Integer>(temp.MainScope.ScopeKey));
 	}
 
@@ -193,15 +194,22 @@ public class AnalizerSemantic {
 		Method mother=findMethodByName(motherMethodName, owner.MethodList);
 		assert mother!=null;
 		Scope parent=Scope.getScopeInMethod(mother, currentScopeKey);
+		//System.err.println("in updateKey pass2 key: "+currentScopeKey);
 		assert parent!=null;
 
-		Scope.Point2NewChild(currentScopeKey, parent);
+		currentScopeKey.add(currentScopeKey.size()-1, parent.ChildCount);
 	}
 
-	public void updateKeyWhenClosingScope(ArrayList<Integer> ScopeKey)
+	public void updateKeyWhenClosingScope(String ownerClassName, String motherMethodName, ArrayList<Integer> ScopeKey)
 	{
+
+		CoolClass owner=findCoolClassByName(ownerClassName, classList);
+		assert owner!=null;
+		Method mother=findMethodByName(motherMethodName, owner.MethodList);
+		assert mother!=null;
+
 		assert !(ScopeKey==null || ScopeKey.size()==0);
-		Scope.closeScope(ScopeKey);
+		Scope.closeScope(mother, ScopeKey);
 		
 	}
 	
@@ -221,6 +229,9 @@ public class AnalizerSemantic {
 			checkDuplicateMethods(classList.get(i));
 		if(SemanticErrorFound)
 			throw new FirstPassUnsuccessful(this);
+		for(int i=0; i<classList.size(); ++i)
+			for(int j=0; j<classList.get(i).MethodList.size(); ++j)
+				classList.get(i).MethodList.get(j).MainScope.resetChildCountOfAll();
 		PassedTimes=1;
 	}
 
@@ -327,7 +338,7 @@ public class AnalizerSemantic {
 			throw new TypeConflict("Int",arg1,this);
 		}
 		else if(Operator.equals("=")){
-			System.err.println("Equality test"+arg1+" "+arg2);
+			//System.err.println("Equality test"+arg1+" "+arg2);
 			assert(arg1!=null && arg2!=null);
 			if(arg1.equals("Int")){
 				if(arg2.equals("Int"))
@@ -699,6 +710,7 @@ public class AnalizerSemantic {
 		ArrayList<Variable> VarList;
 		ArrayList<Integer> ScopeKey;
 		ArrayList<Scope> Children;
+		int ChildCount;
 		private Scope(Scope p, Method mother, ArrayList<Variable> varlist)
 		{
 			Parent=p;
@@ -707,6 +719,7 @@ public class AnalizerSemantic {
 			ScopeKey=new ArrayList<Integer>();
 			ScopeKey.add(EndOfScopeSearchIdentifier);
 			Children=new ArrayList<Scope>();
+			ChildCount=0;
 		}
 		public static Scope generateMainScopeOfMethod(Method m)
 		{
@@ -724,6 +737,13 @@ public class AnalizerSemantic {
 		public static void Point2NewChild(ArrayList<Integer> currentScopeKey, Scope parent)
 		{
 			currentScopeKey.add(currentScopeKey.size()-1, parent.Children.size());
+		}
+
+		public void resetChildCountOfAll()
+		{
+			ChildCount=0;
+			for(int i=0; i<Children.size(); ++i)
+				Children.get(i).resetChildCountOfAll();
 		}
 		
 		private static Scope getScopeInMethod(Method m, ArrayList<Integer> key)
@@ -765,7 +785,7 @@ public class AnalizerSemantic {
 			return getScopeInScope(s.Children.get(nextBranch), key);
 		}
 
-		public static void closeScope(ArrayList<Integer> ScopeKey)
+		public static void closeScope(Method m, ArrayList<Integer> ScopeKey)
 		{
 			if(ScopeKey.size()==1)//Main scope is closing
 			{
@@ -774,6 +794,8 @@ public class AnalizerSemantic {
 				return ;
 			}
 			ScopeKey.remove(ScopeKey.size()-2);
+			Scope parent=getScopeInMethod(m, ScopeKey);
+			parent.ChildCount=parent.ChildCount+1;
 		}
 
 		public String toString()

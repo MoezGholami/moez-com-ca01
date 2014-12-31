@@ -1,5 +1,4 @@
 import org.antlr.v4.runtime.*;
-
 import java.io.IOException;
 
 public class Main{
@@ -19,7 +18,11 @@ public class Main{
 		
 		AnalizerSemantic inst = AnalizerSemantic.getInstance();
 		
-		parser.program();
+		try {
+			parser.program();
+		} catch (AnalizerSemantic.SemanticError e1) {
+			System.err.println(e1.toString());
+		}
 		//System.out.println(AnalizerSemantic.getInstance().toString());
 		if(inst.hasSemanticError()){
 			System.err.printf("Semantic Error\n");

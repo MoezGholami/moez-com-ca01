@@ -263,10 +263,10 @@ public class TypeCheckerParser extends Parser {
 						CurrScopeKey = semAnalizer.generateNewMainScopeKey_AfterPass0();
 						setState(74); match(T__4);
 						setState(75); CurrExprType = expr().TypeName;
-						System.out.printf("methodType: %s && CurrExprReturned %s && CurrMethodName %s\n",CurrMethodTypeName,CurrExprType,CurrMethodName);
+						//System.out.printf("methodType: %s && CurrExprReturned %s && CurrMethodName %s\n",CurrMethodTypeName,CurrExprType,CurrMethodName);
 						semAnalizer.checkMethodReturnType(CurrMethodTypeName, CurrExprType, _ctx.getStart().getLine());
 						setState(76); match(T__1);
-						semAnalizer.updateKeyWhenClosingScope(CurrScopeKey);
+						semAnalizer.updateKeyWhenClosingScope(CurClassName, CurrMethodName, CurrScopeKey);
 					}
 					break;
 				case 2:
@@ -473,7 +473,7 @@ public class TypeCheckerParser extends Parser {
 						setState(126); match(KWIN);
 						setState(127); TypeName = expr().TypeName;
 						for(int i=0;i<NumberOfLetScopes;++i)
-							semAnalizer.updateKeyWhenClosingScope(CurrScopeKey);							
+							semAnalizer.updateKeyWhenClosingScope(CurClassName, CurrMethodName, CurrScopeKey);							
 					}
 					break;
 				case 4:
@@ -505,7 +505,7 @@ public class TypeCheckerParser extends Parser {
 						} while ( _la==OID );
 						TypeName = semAnalizer.joinOf_TypeName(CaseTypeVariables);
 						setState(142); match(KWESAC);
-						semAnalizer.updateKeyWhenClosingScope(CurrScopeKey);
+						semAnalizer.updateKeyWhenClosingScope(CurClassName, CurrMethodName, CurrScopeKey);
 					}
 					break;
 				case 5:
@@ -565,7 +565,7 @@ public class TypeCheckerParser extends Parser {
 								}
 							}
 						}
-						System.err.println("In expr1: method: "+FunctionVariableList.toString());
+						//System.err.println("In expr1: method: "+FunctionVariableList.toString());
 						TypeName = semAnalizer.TypeNameOfMethod(null,null,CurrMethodName,FunctionVariableList,CurClassName, _ctx.getStart().getLine());
 						setState(170); match(T__16);
 					}
@@ -776,7 +776,7 @@ public class TypeCheckerParser extends Parser {
 						setState(206); match(T__16);
 						setState(207); TypeName = expr2p(exprType).TypeName; // Here
 						
-						System.err.println("expr2: currTypeName: "+exprType+" currMethod: "+CurrVarName+" currVarTypeName: "+CurrVarTypeName+ "return TypeName: "+TypeName);
+						//System.err.println("expr2: currTypeName: "+exprType+" currMethod: "+CurrVarName+" currVarTypeName: "+CurrVarTypeName+ "return TypeName: "+TypeName);
 						TypeName = semAnalizer.TypeNameOfMethod(exprType,CurrVarTypeName,CurrVarName,FunctionVariableList,CurClassName, _ctx.getStart().getLine());
 						
 					}

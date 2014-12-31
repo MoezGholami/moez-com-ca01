@@ -159,8 +159,8 @@ public class AnalizerSemantic {
 		Variable inComingVariable=new Variable(rawfield, this);
 		if(Variable.hasVariableWithName(inComingVariable.Name, mother.args))
 			throw new DuplicateVariableName(inComingVariable.Name, this);
-		if(Variable.hasVariableWithName(rawfield.Name, owner.Fields))
-			throw new DuplicateVariableName(rawfield.Name, this);
+		//if(Variable.hasVariableWithName(rawfield.Name, owner.Fields))
+		//	throw new DuplicateVariableName(rawfield.Name, this);
 		Variable duplicateScopeVar=Variable.findVariableByName(inComingVariable.Name, s.VarList);
 		if(duplicateScopeVar!=null)
 			if(whichScope==addingToLetScope)

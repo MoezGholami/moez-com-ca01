@@ -272,6 +272,7 @@ public class TypeCheckerParser extends Parser {
 				case 2:
 					enterOuterAlt(_localctx, 2);
 					{
+						String initexp;
 						CurrMethodName = null;
 						setState(78); CurrVarName=match(OID).getText();
 						setState(79); match(T__10);
@@ -281,9 +282,11 @@ public class TypeCheckerParser extends Parser {
 						if (_la==T__0) {
 							{
 								setState(81); match(T__0);
-								setState(82); expr();
+								setState(82); initexp=expr().TypeName;
+								semAnalizer.TypeOfOperation(CurrVarTypeName, "<-", initexp, CurClassName, _ctx.getStart().getLine());
 							}
 						}
+						
 
 					}
 					break;

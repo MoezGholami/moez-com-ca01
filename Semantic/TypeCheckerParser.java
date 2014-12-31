@@ -400,14 +400,15 @@ public class TypeCheckerParser extends Parser {
 				case 1:
 					enterOuterAlt(_localctx, 1);
 					{
+						String xexpr,yexpr;
 						setState(91); match(KWIF);
 						setState(92); semAnalizer.CheckBoolPredicate(expr().TypeName, _ctx.getStart().getLine());
 						setState(93); match(KWTHEN);
-						setState(94); expr();
+						setState(94); xexpr = expr().TypeName;
 						setState(95); match(KWELSE);
-						setState(96); expr();
+						setState(96); yexpr = expr().TypeName;
 						setState(97); match(KWFI);
-						TypeName = "Object";
+						TypeName = semAnalizer.joinOf_TypeName(xexpr, yexpr);
 					}
 					break;
 				case 2:
@@ -555,8 +556,7 @@ public class TypeCheckerParser extends Parser {
 									{
 										{
 											setState(161); match(T__15);
-											expr();
-											setState(162); FunctionVariableList.add("a");
+											setState(162); FunctionVariableList.add(expr().TypeName);
 										}
 									}
 									setState(167);
@@ -576,8 +576,8 @@ public class TypeCheckerParser extends Parser {
 						setState(171); CurrVarName = match(OID).getText();
 						setState(172); match(T__0);
 						setState(173);
-						TempVarType = semAnalizer.LookUpVarType(CurClassName, CurrMethodName, CurrScopeKey, CurrVarName, _ctx.getStart().getLine());
-						TypeName = semAnalizer.TypeOfOperation(TempVarType,"<-",expr().TypeName,CurClassName, _ctx.getStart().getLine());
+						TempVarType = semAnalizer.LookUpVarType(CurClassName, CurrMethodName, CurrScopeKey, CurrVarName,_ctx.getStart().getLine());
+						TypeName = semAnalizer.TypeOfOperation(TempVarType,"<-",expr().TypeName,CurClassName,_ctx.getStart().getLine());
 					}
 					break;
 				case 9:
@@ -585,15 +585,14 @@ public class TypeCheckerParser extends Parser {
 					{
 						setState(174); match(KWNEW);
 						setState(175);
-						TypeName = semAnalizer.TypeOfOperation( match(TID).getText(),"KWNEW",null,CurClassName, _ctx.getStart().getLine());
+						TypeName = semAnalizer.TypeOfOperation( match(TID).getText(),"KWNEW",null,CurClassName,_ctx.getStart().getLine());
 					}
 					break;
 				case 10:
 					enterOuterAlt(_localctx, 10);
 					{
-						setState(176); TypeName = semAnalizer.LookUpVarType(CurClassName,CurrMethodName,CurrScopeKey,match(OID).getText(), _ctx.getStart().getLine());
 						CurrVarName = match(OID).getText();
-						System.err.println("String? >>>> "+CurrVarName);
+						//System.err.println("String? >>>> "+CurrVarName);
 						setState(176); TypeName = semAnalizer.LookUpVarType(CurClassName,CurrMethodName,CurrScopeKey,CurrVarName,_ctx.getStart().getLine());
 						assert TypeName !=null;
 					}
